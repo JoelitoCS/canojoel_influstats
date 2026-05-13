@@ -1,17 +1,6 @@
-/**
- * Input.jsx — Componente de campo de formulario reutilizable
- *
- * Props:
- *  - label:       string  — texto del <label> visible
- *  - error:       string  — mensaje de error (si existe, pone el borde rojo)
- *  - hint:        string  — texto de ayuda gris bajo el campo
- *  - icon:        ReactNode — icono SVG a la izquierda del input
- *  - rightElement: ReactNode — elemento a la derecha (ej: botón "mostrar contraseña")
- *  - className:   string  — clases extra
- *  - ...rest:     props nativas de <input> (type, placeholder, value, onChange…)
- */
 "use client";
 
+// Campo de formulario reutilizable con label, hint y estado visual de error.
 export default function Input({
   label,
   error,
@@ -21,69 +10,47 @@ export default function Input({
   className = "",
   ...rest
 }) {
-  /* El borde cambia a rojo si hay un mensaje de error */
+  // El borde cambia automaticamente cuando el campo tiene error.
   const borderClass = error
     ? "border-[var(--color-error)] focus-within:ring-[var(--color-error)]"
     : "border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-[var(--color-accent)]";
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
-      {/* Label visible (se oculta si no se pasa) */}
+    <div className="flex w-full flex-col gap-1.5">
       {label && (
-        <label className="text-xs font-medium tracking-widest uppercase text-[var(--color-muted)] select-none">
+        <label className="select-none text-xs font-medium uppercase tracking-widest text-[var(--color-muted)]">
           {label}
         </label>
       )}
 
-      {/* Wrapper que agrupa icono + input + rightElement */}
       <div
         className={[
-          "flex items-center gap-2",
-          "bg-[var(--color-surface)] border rounded-[var(--radius-md)]",
-          "px-4 h-11",
-          "transition-all duration-200",
-          "focus-within:ring-1",
+          "flex h-11 items-center gap-2 rounded-[var(--radius-md)] border bg-[var(--color-surface-strong)]/70 px-4",
+          "transition-all duration-200 focus-within:-translate-y-0.5 focus-within:ring-1 focus-within:shadow-[var(--shadow-glow)]",
           borderClass,
         ].join(" ")}
       >
-        {/* Icono izquierdo opcional */}
-        {icon && (
-          <span className="text-[var(--color-muted)] shrink-0 flex items-center">
-            {icon}
-          </span>
-        )}
+        {icon && <span className="flex shrink-0 items-center text-[var(--color-muted)]">{icon}</span>}
 
-        {/* El input propiamente — sin borde propio, lo gestiona el wrapper */}
         <input
           className={[
-            "flex-1 bg-transparent text-sm text-[var(--color-text)]",
+            "flex-1 border-none bg-transparent text-sm text-[var(--color-text)] outline-none",
             "placeholder:text-[var(--color-muted)]",
-            "outline-none border-none",
             className,
           ].join(" ")}
           {...rest}
         />
 
-        {/* Elemento derecho opcional (ej: ojo para contraseña) */}
-        {rightElement && (
-          <span className="shrink-0 flex items-center">{rightElement}</span>
-        )}
+        {rightElement && <span className="flex shrink-0 items-center">{rightElement}</span>}
       </div>
 
-      {/* Mensaje de error — aparece con animación si hay error */}
       {error && (
-        <p
-          className="text-xs text-[var(--color-error)] animate-fade-in-up"
-          role="alert"
-        >
+        <p className="animate-fade-in-up text-xs text-[var(--color-error)]" role="alert">
           {error}
         </p>
       )}
 
-      {/* Hint informativo (solo se muestra si no hay error) */}
-      {hint && !error && (
-        <p className="text-xs text-[var(--color-muted)]">{hint}</p>
-      )}
+      {hint && !error && <p className="text-xs text-[var(--color-muted)]">{hint}</p>}
     </div>
   );
 }
