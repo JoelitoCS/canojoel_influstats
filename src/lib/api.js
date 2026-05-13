@@ -57,13 +57,20 @@ export const authApi = {
 
 // Endpoints de perfiles sociales asociados al usuario autenticado.
 export const profilesApi = {
-  // Obtiene todos los perfiles del usuario → GET /api/profiles
+  // GET /api/profiles → devuelve todos los perfiles del usuario
   getAll: () => apiFetch('/api/profiles'),
 
-  // Crea un perfil nuevo → POST /api/profiles
+  // POST /api/profiles → crea un perfil nuevo
   create: (profile) =>
     apiFetch('/api/profiles', {
       method: 'POST',
+      body: JSON.stringify(profile),
+    }),
+
+  // PUT /api/profiles/:id → actualiza los datos de un perfil existente
+  update: (id, profile) =>
+    apiFetch(`/api/profiles/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(profile),
     }),
 };

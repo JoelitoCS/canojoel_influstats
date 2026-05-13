@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { profilesApi } from "@/lib/api";
 import ProfilesTable from '@/components/ui/ProfilesTable';
+import EditProfileModal from '@/components/ui/EditProfileModal';
 
 // Plataformas permitidas por el CHECK real de la tabla social_profiles.
 const platforms = [
@@ -56,6 +57,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [profiles, setProfiles] = useState([]);       // lista de perfiles del usuario
   const [loadingProfiles, setLoadingProfiles] = useState(true); // spinner inicial
+  // null = modal cerrado; objeto profile = modal abierto con ese perfil
+  const [editingProfile, setEditingProfile] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -100,6 +103,16 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ── Callback cuando el modal guarda con éxito ──────────────────
+  // Actualiza el perfil en la lista local sin hacer un fetch extra
+  const handleProfileSaved = (updatedProfile) => {
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
+    );
+    // Cerramos el modal tras mostrar el feedback
+    setTimeout(() => setEditingProfile(null), 800);
   };
 
   const fetchProfiles = async () => {
@@ -239,6 +252,15 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+      {editingProfile && (
+        <EditProfileModal
+          profile={editingProfile}
+          onClose={() => setEditingProfile(null)}
+          onSaved={handleProfileSaved}
+        />
+      )}
+
     </AppShell>
+      
   );
 }
