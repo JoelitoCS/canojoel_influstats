@@ -87,7 +87,6 @@ export default function DashboardPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     const nextErrors = validate();
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -95,10 +94,12 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const data = await profilesApi.create(form);
-      setSuccess(data.message || "Perfil social creado correctamente");
-      fetchProfiles();
-      setForm({ name: "", url: "", platform: "instagram" });
+      setSuccess(data.message || 'Perfil social creado correctamente');
+      setForm({ name: '', url: '', platform: 'instagram' });
+      fetchProfiles(); // refresca la tabla tras crear
     } catch (error) {
+      // Guard de auth también en creación
+      handleAuthError(error);
       setErrors({ general: error.message });
     } finally {
       setLoading(false);
@@ -119,12 +120,27 @@ export default function DashboardPage() {
     try {
       setLoadingProfiles(true);
       const data = await profilesApi.getAll();
-      // data.profiles es el array devuelto por GET /api/profiles
       setProfiles(data.profiles);
     } catch (error) {
+      // Si el backend responde 401 redirigimos al login automáticamente
+      handleAuthError(error);
       console.error('Error al cargar perfiles:', error.message);
     } finally {
       setLoadingProfiles(false);
+    }
+  };
+
+  // La protección de ruta del lado cliente ya existe con el useEffect + token.
+  // Reforzamos añadiendo también un guard en fetchProfiles y en handleSubmit
+  // para manejar el caso de token expirado en mitad de la sesión.
+
+  // ── Manejador de errores 401/403 centralizado ──────────────────
+  const handleAuthError = (error) => {
+    if (error.status === 401 || error.status === 403) {
+      // Token expirado o inválido: limpiamos storage y redirigimos al login
+      localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
+      router.replace('/login');
     }
   };
 
