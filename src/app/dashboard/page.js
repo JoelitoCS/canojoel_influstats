@@ -54,6 +54,8 @@ export default function DashboardPage() {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [profiles, setProfiles] = useState([]);       // lista de perfiles del usuario
+  const [loadingProfiles, setLoadingProfiles] = useState(true); // spinner inicial
 
   useEffect(() => {
     if (!token) {
@@ -91,6 +93,7 @@ export default function DashboardPage() {
       setLoading(true);
       const data = await profilesApi.create(form);
       setSuccess(data.message || "Perfil social creado correctamente");
+      fetchProfiles();
       setForm({ name: "", url: "", platform: "instagram" });
     } catch (error) {
       setErrors({ general: error.message });
@@ -98,6 +101,23 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+
+  const fetchProfiles = async () => {
+    try {
+      setLoadingProfiles(true);
+      const data = await profilesApi.getAll();
+      // data.profiles es el array devuelto por GET /api/profiles
+      setProfiles(data.profiles);
+    } catch (error) {
+      console.error('Error al cargar perfiles:', error.message);
+    } finally {
+      setLoadingProfiles(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) fetchProfiles();
+  }, [token]);
 
   if (!token) {
     return null;
@@ -194,6 +214,29 @@ export default function DashboardPage() {
               Guardar perfil
             </Button>
           </form>
+        </Card>
+
+        {/* La primera card sirve para crear, esta sirve para mostrar los existentes */}
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Mis perfiles sociales</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+              Gestiona tus redes sociales vinculadas.
+            </p>
+          </div>
+
+          {/* Spinner mientras se cargan los perfiles por primera vez */}
+          {loadingProfiles ? (
+            <p className="py-6 text-center text-sm text-[var(--color-muted)]">Cargando perfiles…</p>
+          ) : (
+            // Tabla con botones de editar/eliminar (historias 2 y 3)
+            <ProfilesTable
+              profiles={profiles}
+              onEdit={(profile) => setEditingProfile(profile)} // historia 2
+              onDelete={(id) => handleDelete(id)}              // pendiente historia 3
+            />
+          )}
         </Card>
       </div>
     </AppShell>
