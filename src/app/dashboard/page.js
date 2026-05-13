@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { profilesApi } from "@/lib/api";
+import ProfilesTable from '@/components/ui/ProfilesTable';
 
 // Plataformas permitidas por el CHECK real de la tabla social_profiles.
 const platforms = [
