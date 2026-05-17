@@ -1,11 +1,12 @@
 "use client";
 
-// Estilos por variante para reutilizar el mismo boton en formularios y layout.
+// Estilos por variante con la nueva paleta coral/púrpura.
 const VARIANTS = {
   primary: [
-    "bg-[var(--color-accent)] text-[#0c0c0f]",
-    "hover:bg-[var(--color-accent-dim)]",
-    "shadow-[var(--shadow-glow)] hover:shadow-[0_0_38px_color-mix(in_srgb,var(--color-accent)_24%,transparent)]",
+    "bg-[var(--color-accent)] text-white",
+    "hover:brightness-110",
+    "shadow-[0_0_16px_var(--color-accent-glow)]",
+    "hover:shadow-[0_0_28px_var(--color-accent-glow)]",
     "focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     "font-semibold tracking-wide",
@@ -28,14 +29,13 @@ const VARIANTS = {
   ].join(" "),
 };
 
-// Tamanos controlados para que los botones mantengan consistencia visual.
 const SIZES = {
   sm: "h-8 px-4 text-xs rounded-[var(--radius-sm)]",
   md: "h-11 px-6 text-sm rounded-[var(--radius-md)]",
   lg: "h-13 px-8 text-base rounded-[var(--radius-md)]",
 };
 
-// Boton reutilizable con estado de carga y bloqueo automatico.
+// Botón reutilizable con estado de carga.
 export default function Button({
   children,
   variant = "primary",

@@ -1,71 +1,159 @@
 @import "tailwindcss";
 
-/* Tema claro: azul cielo suave, superficies limpias y contraste profesional. */
+/* ═══════════════════════════════════════════════════════════════
+   INFLUSTATS — DESIGN SYSTEM
+   Inspirado en dashboards de analítica social con sidebar lateral,
+   paleta oscura profunda con acentos coral/rosa y tema claro gris.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── TEMA CLARO ── Gris neutro con profundidad, no blanco plano */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  --color-bg: #eef8ff;
-  --color-bg-soft: #f7fcff;
-  --color-surface: rgba(255, 255, 255, 0.82);
-  --color-surface-strong: #ffffff;
-  --color-border: rgba(44, 123, 189, 0.16);
-  --color-text: #132033;
-  --color-muted: #62748f;
-  --color-accent: #33b7ff;
-  --color-accent-dim: #1597df;
-  --color-accent-soft: rgba(51, 183, 255, 0.14);
-  --color-error: #e5486d;
-  --color-success: #05a884;
-  --shadow-card: 0 18px 60px rgba(23, 93, 145, 0.14);
-  --shadow-glow: 0 0 0 rgba(51, 183, 255, 0);
-  --radius-sm: 7px;
-  --radius-md: 8px;
-  --radius-lg: 8px;
+
+  /* Fondos gris muy claro — luminoso pero no blanco puro */
+  --color-bg: #f2f3f5;
+  --color-bg-soft: #f6f7f8;
+  --color-bg-deep: #ebedf0;
+
+  /* Superficies claras con glassmorphism sutil */
+  --color-surface: rgba(255, 255, 255, 0.7);
+  --color-surface-strong: #fafafa;
+  --color-surface-hover: rgba(255, 255, 255, 0.88);
+
+  /* Sidebar en modo claro — gris claro coherente con el fondo */
+  --color-sidebar: #e4e5ea;
+  --color-sidebar-soft: #dcdde3;
+  --color-sidebar-text: #6b6e7f;
+  --color-sidebar-text-active: #1a1c24;
+  --color-sidebar-accent: rgba(255, 107, 129, 0.1);
+  --color-sidebar-border: rgba(0, 0, 0, 0.06);
+
+  /* Top bar en modo claro */
+  --color-topbar: rgba(242, 243, 245, 0.85);
+
+  /* Bordes y separadores */
+  --color-border: rgba(50, 52, 66, 0.12);
+  --color-border-strong: rgba(50, 52, 66, 0.2);
+
+  /* Texto */
+  --color-text: #1a1c24;
+  --color-text-secondary: #5c5f6e;
+  --color-muted: #82859a;
+
+  /* Acentos — coral/rosa cálido */
+  --color-accent: #ff6b81;
+  --color-accent-dim: #e8556e;
+  --color-accent-soft: rgba(255, 107, 129, 0.1);
+  --color-accent-glow: rgba(255, 107, 129, 0.2);
+
+  /* Secundario — púrpura suave */
+  --color-secondary: #8b5cf6;
+  --color-secondary-soft: rgba(139, 92, 246, 0.1);
+
+  /* Estados */
+  --color-error: #ef4444;
+  --color-error-soft: rgba(239, 68, 68, 0.1);
+  --color-success: #10b981;
+  --color-success-soft: rgba(16, 185, 129, 0.1);
+  --color-warning: #f59e0b;
+  --color-warning-soft: rgba(245, 158, 11, 0.1);
+
+  /* Plataformas */
+  --color-instagram: #e1306c;
+  --color-tiktok: #00f2ea;
+  --color-youtube: #ff0000;
+  --color-twitch: #9146ff;
+
+  /* Sombras */
+  --shadow-card: 0 1px 3px rgba(30, 32, 44, 0.05), 0 8px 28px rgba(30, 32, 44, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(30, 32, 44, 0.08), 0 16px 44px rgba(30, 32, 44, 0.09);
+  --shadow-glow: 0 0 0 rgba(255, 107, 129, 0);
+  --shadow-sidebar: 4px 0 20px rgba(30, 32, 40, 0.1);
+
+  /* Radios */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
 }
 
-/* Tema oscuro: base profunda con acentos neon y glow contenido. */
+/* ── TEMA OSCURO ── Base profunda con acentos neón contenidos */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #090b13;
-  --color-bg-soft: #0d111d;
-  --color-surface: rgba(18, 22, 34, 0.78);
-  --color-surface-strong: #151a27;
-  --color-border: rgba(122, 244, 222, 0.18);
-  --color-text: #f4f8ff;
-  --color-muted: #9ca9c7;
-  --color-accent: #7af4de;
-  --color-accent-dim: #49d8ff;
-  --color-accent-soft: rgba(122, 244, 222, 0.12);
-  --color-error: #ff5f88;
-  --color-success: #7af4de;
-  --shadow-card: 0 22px 70px rgba(0, 0, 0, 0.42);
-  --shadow-glow: 0 0 32px rgba(122, 244, 222, 0.16);
+
+  --color-bg: #0c0a14;
+  --color-bg-soft: #110e1c;
+  --color-bg-deep: #080612;
+
+  --color-surface: rgba(22, 18, 36, 0.72);
+  --color-surface-strong: #1a1530;
+  --color-surface-hover: rgba(30, 24, 50, 0.85);
+
+  --color-sidebar: #0f0c1a;
+  --color-sidebar-soft: #161226;
+  --color-sidebar-text: #7a7194;
+  --color-sidebar-text-active: #f0ecf8;
+  --color-sidebar-accent: rgba(255, 107, 129, 0.1);
+  --color-sidebar-border: rgba(255, 255, 255, 0.04);
+
+  --color-topbar: rgba(14, 11, 22, 0.85);
+
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.1);
+
+  --color-text: #f0ecf8;
+  --color-text-secondary: #9b93b0;
+  --color-muted: #6b6280;
+
+  --color-accent: #ff6b81;
+  --color-accent-dim: #ff8fa0;
+  --color-accent-soft: rgba(255, 107, 129, 0.12);
+  --color-accent-glow: rgba(255, 107, 129, 0.25);
+
+  --color-secondary: #a78bfa;
+  --color-secondary-soft: rgba(167, 139, 250, 0.12);
+
+  --color-error: #f87171;
+  --color-error-soft: rgba(248, 113, 113, 0.12);
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.12);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, 0.12);
+
+  --color-instagram: #e1306c;
+  --color-tiktok: #00f2ea;
+  --color-youtube: #ff0000;
+  --color-twitch: #9146ff;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 20px 60px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(255, 107, 129, 0.15);
+  --shadow-sidebar: 4px 0 32px rgba(0, 0, 0, 0.4);
 }
 
-/* Evita saltos de layout por calculos de caja diferentes. */
+/* ── RESET & BASE ── */
 * {
   box-sizing: border-box;
 }
 
-/* Base de pagina con textura sutil sin depender de imagenes externas. */
 html {
   min-height: 100%;
-  background:
-    radial-gradient(circle at 20% 0%, var(--color-accent-soft), transparent 34rem),
-    linear-gradient(180deg, var(--color-bg-soft), var(--color-bg));
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.03) 45%, transparent 100%),
-    var(--color-bg);
+  background: var(--color-bg);
   color: var(--color-text);
-  transition: background-color 220ms ease, color 220ms ease;
+  transition: background-color 280ms ease, color 280ms ease;
 }
 
-/* Los links heredan color para que cada componente controle su estado visual. */
 a {
   color: inherit;
   text-decoration: none;
@@ -76,67 +164,69 @@ a {
   color: var(--color-text);
 }
 
-/* Scrollbar discreta para mantener el aspecto minimalista. */
+/* Scrollbar minimalista */
 * {
   scrollbar-color: var(--color-accent) transparent;
   scrollbar-width: thin;
 }
 
-/* Entrada general de pantallas y mensajes. */
+/* ── KEYFRAMES ── */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Microanimacion para tarjetas y menus desplegables. */
 @keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-/* Pulso suave usado para estados destacados, sin romper la lectura. */
-@keyframes soft-pulse {
-  0%,
-  100% {
-    box-shadow: var(--shadow-glow);
-  }
-  50% {
-    box-shadow: 0 0 42px color-mix(in srgb, var(--color-accent) 22%, transparent);
-  }
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── UTILIDADES DE ANIMACIÓN ── */
 .animate-fade-in,
 .animate-fade-in-up {
-  animation: fade-in 0.38s ease-out;
+  animation: fade-in 0.35s ease-out;
 }
 
 .animate-scale-in {
-  animation: scale-in 0.18s ease-out;
+  animation: scale-in 0.2s ease-out;
 }
 
+.animate-slide-in {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+/* ── SUPERFICIES Y CARDS ── */
 .surface-glow {
-  box-shadow: var(--shadow-card), var(--shadow-glow);
+  box-shadow: var(--shadow-card);
 }
 
-/* El toggle de tema se mueve solo con el atributo data-theme del documento. */
+.surface-glow:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ── THEME TOGGLE ── */
 .theme-knob {
   transform: translateX(0);
 }
 
 .theme-knob::after {
-  content: "C";
+  content: "☀";
+  font-size: 11px;
 }
 
 :root[data-theme="dark"] .theme-knob {
@@ -144,5 +234,83 @@ a {
 }
 
 :root[data-theme="dark"] .theme-knob::after {
-  content: "N";
+  content: "🌙";
+  font-size: 11px;
+}
+
+/* ── SIDEBAR SCROLLBAR ── */
+.sidebar-scroll {
+  scrollbar-width: none;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── BADGE DE PLATAFORMA ── */
+.platform-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.platform-dot--instagram { background: var(--color-instagram); }
+.platform-dot--tiktok    { background: var(--color-tiktok); }
+.platform-dot--youtube   { background: var(--color-youtube); }
+.platform-dot--twitch    { background: var(--color-twitch); }
+
+/* ── ENGAGEMENT BAR ── */
+.engagement-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.engagement-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
+  transition: width 0.6s ease-out;
+}
+
+/* ── STAT CARD GLOW ── */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+/* ── NAV ITEM ACTIVE INDICATOR ── */
+.nav-active-indicator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-accent);
+}
+
+/* ── SKELETON LOADING ── */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+  border-radius: var(--radius-sm);
 }

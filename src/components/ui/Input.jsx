@@ -1,6 +1,6 @@
 "use client";
 
-// Campo de formulario reutilizable con label, hint y estado visual de error.
+// Campo de formulario con la nueva paleta visual.
 export default function Input({
   label,
   error,
@@ -10,7 +10,6 @@ export default function Input({
   className = "",
   ...rest
 }) {
-  // El borde cambia automaticamente cuando el campo tiene error.
   const borderClass = error
     ? "border-[var(--color-error)] focus-within:ring-[var(--color-error)]"
     : "border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-[var(--color-accent)]";
@@ -25,12 +24,14 @@ export default function Input({
 
       <div
         className={[
-          "flex h-11 items-center gap-2 rounded-[var(--radius-md)] border bg-[var(--color-surface-strong)]/70 px-4",
-          "transition-all duration-200 focus-within:-translate-y-0.5 focus-within:ring-1 focus-within:shadow-[var(--shadow-glow)]",
+          "flex h-11 items-center gap-2 rounded-[var(--radius-md)] border bg-[var(--color-surface-strong)]/60 px-4",
+          "transition-all duration-200 focus-within:ring-1 focus-within:shadow-[0_0_16px_var(--color-accent-glow)]",
           borderClass,
         ].join(" ")}
       >
-        {icon && <span className="flex shrink-0 items-center text-[var(--color-muted)]">{icon}</span>}
+        {icon && (
+          <span className="flex shrink-0 items-center text-[var(--color-muted)]">{icon}</span>
+        )}
 
         <input
           className={[
@@ -41,11 +42,13 @@ export default function Input({
           {...rest}
         />
 
-        {rightElement && <span className="flex shrink-0 items-center">{rightElement}</span>}
+        {rightElement && (
+          <span className="flex shrink-0 items-center">{rightElement}</span>
+        )}
       </div>
 
       {error && (
-        <p className="animate-fade-in-up text-xs text-[var(--color-error)]" role="alert">
+        <p className="animate-fade-in text-xs text-[var(--color-error)]" role="alert">
           {error}
         </p>
       )}

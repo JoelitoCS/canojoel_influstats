@@ -1,5 +1,4 @@
 // Base URL compartida por todas las llamadas al backend.
-// En local usamos 3001 para no chocar con Next, que suele ocupar 3000.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 // Error propio para conservar status HTTP y cuerpo de respuesta.
@@ -12,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-// Wrapper de fetch: anade JSON, token JWT y parseo de errores en un solo sitio.
+// Wrapper de fetch: añade JSON, token JWT y parseo de errores en un solo sitio.
 export async function apiFetch(path, options = {}) {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const headers = new Headers(options.headers);
@@ -34,13 +33,13 @@ export async function apiFetch(path, options = {}) {
   const data = contentType.includes("application/json") ? await response.json() : null;
 
   if (!response.ok) {
-    throw new ApiError(data?.message || "Error en la peticion", response.status, data);
+    throw new ApiError(data?.message || "Error en la petición", response.status, data);
   }
 
   return data;
 }
 
-// Endpoints de autenticacion consumidos por las pantallas de login y registro.
+// Endpoints de autenticación consumidos por las pantallas de login y registro.
 export const authApi = {
   login: (credentials) =>
     apiFetch("/api/auth/login", {
@@ -58,12 +57,25 @@ export const authApi = {
 // Endpoints de perfiles sociales asociados al usuario autenticado.
 export const profilesApi = {
   // Obtiene todos los perfiles del usuario → GET /api/profiles
-  getAll: () => apiFetch('/api/profiles'),
+  getAll: () => apiFetch("/api/profiles"),
 
   // Crea un perfil nuevo → POST /api/profiles
   create: (profile) =>
-    apiFetch('/api/profiles', {
-      method: 'POST',
+    apiFetch("/api/profiles", {
+      method: "POST",
       body: JSON.stringify(profile),
+    }),
+
+  // Actualiza un perfil existente → PUT /api/profiles/:id
+  update: (id, profile) =>
+    apiFetch(`/api/profiles/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(profile),
+    }),
+
+  // Elimina un perfil → DELETE /api/profiles/:id
+  delete: (id) =>
+    apiFetch(`/api/profiles/${id}`, {
+      method: "DELETE",
     }),
 };
