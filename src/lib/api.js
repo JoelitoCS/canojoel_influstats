@@ -59,7 +59,7 @@ export const profilesApi = {
   // Obtiene todos los perfiles del usuario → GET /api/profiles
   getAll: () => apiFetch("/api/profiles"),
 
-  // Crea un perfil nuevo → POST /api/profiles
+  // POST /api/profiles → crea un perfil nuevo
   create: (profile) =>
     apiFetch("/api/profiles", {
       method: "POST",

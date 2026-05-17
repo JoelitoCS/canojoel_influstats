@@ -86,8 +86,7 @@ export default function DashboardPage() {
   const token = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
   // ── Estado de perfiles ──
-  const [profiles, setProfiles] = useState([]);
-  const [loadingProfiles, setLoadingProfiles] = useState(true);
+
   const [profilesError, setProfilesError] = useState("");
 
   // ── Estado del formulario de crear ──
@@ -95,6 +94,9 @@ export default function DashboardPage() {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [profiles, setProfiles] = useState([]);       // lista de perfiles del usuario
+  const [loadingProfiles, setLoadingProfiles] = useState(true); // spinner inicial
+  
 
   // ── Estado del modal de edición ──
   const [editingProfile, setEditingProfile] = useState(null);
@@ -165,6 +167,8 @@ export default function DashboardPage() {
       setForm({ ...emptyForm });
       fetchProfiles();
     } catch (error) {
+      // Guard de auth también en creación
+      handleAuthError(error);
       setErrors({ general: error.message });
     } finally {
       setLoading(false);
@@ -370,6 +374,29 @@ export default function DashboardPage() {
             </Button>
           </form>
         </Card>
+
+        {/* La primera card sirve para crear, esta sirve para mostrar los existentes */}
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Mis perfiles sociales</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+              Gestiona tus redes sociales vinculadas.
+            </p>
+          </div>
+
+          {/* Spinner mientras se cargan los perfiles por primera vez */}
+          {loadingProfiles ? (
+            <p className="py-6 text-center text-sm text-[var(--color-muted)]">Cargando perfiles…</p>
+          ) : (
+            // Tabla con botones de editar/eliminar (historias 2 y 3)
+            <ProfilesTable
+              profiles={profiles}
+              onEdit={(profile) => setEditingProfile(profile)} // historia 2
+              onDelete={(id) => handleDelete(id)}              // pendiente historia 3
+            />
+          )}
+        </Card>
       </div>
 
       {/* ══════════════════════════════════════════════════
@@ -504,5 +531,6 @@ export default function DashboardPage() {
         </div>
       )}
     </AppShell>
+      
   );
 }
