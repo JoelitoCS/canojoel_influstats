@@ -77,7 +77,8 @@ const navSections = [
   {
     items: [
       { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-      { href: "/dashboard/rankings", label: "Rankings", icon: "rankings" },
+      // Enlace a la nueva pantalla de estadísticas semanales (historia 4).
+      { href: "/dashboard/metrics", label: "Estadísticas", icon: "rankings" },
       { href: "/dashboard/explore", label: "Explorar", icon: "explore" },
     ],
   },

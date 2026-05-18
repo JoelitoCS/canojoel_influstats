@@ -54,6 +54,19 @@ export const authApi = {
     }),
 };
 
+// Endpoints de métricas semanales por perfil social.
+export const metricsApi = {
+  // Guarda un registro semanal → POST /api/metrics/:profileId
+  create: (profileId, data) =>
+    apiFetch(`/api/metrics/${profileId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Obtiene el historial completo → GET /api/metrics/:profileId
+  getAll: (profileId) => apiFetch(`/api/metrics/${profileId}`),
+};
+
 // Endpoints de perfiles sociales asociados al usuario autenticado.
 export const profilesApi = {
   // Obtiene todos los perfiles del usuario → GET /api/profiles
