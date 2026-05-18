@@ -85,10 +85,10 @@ const navSections = [
   {
     title: "PLATAFORMAS",
     items: [
-      { href: "/dashboard/tiktok", label: "TikTok", icon: "tiktok" },
+      { href: "/dashboard/tiktok",    label: "TikTok",    icon: "tiktok"    },
       { href: "/dashboard/instagram", label: "Instagram", icon: "instagram" },
-      { href: "/dashboard/twitch", label: "Twitch", icon: "twitch" },
-      { href: "/dashboard/youtube", label: "YouTube", icon: "youtube" },
+      { href: "/dashboard/twitch",    label: "Twitch",    icon: "twitch"    },
+      { href: "/dashboard/youtube",   label: "YouTube",   icon: "youtube"   },
     ],
   },
 ];
