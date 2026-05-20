@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import PlatformIcon from "@/components/ui/PlatformIcon";
 
 // ── Cuántas filas mostrar por página en la tabla de historial ────────────────
 const PAGE_SIZE = 8;
@@ -279,13 +280,10 @@ export default function PlatformPage({
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
         <div
-          className="grid h-20 w-20 place-items-center rounded-[var(--radius-xl)] text-4xl"
+          className="grid h-20 w-20 place-items-center rounded-[var(--radius-xl)]"
           style={{ background: `${meta.color}18`, border: `1px solid ${meta.color}40` }}
         >
-          {platform === "instagram" && "📸"}
-          {platform === "youtube"   && "🎬"}
-          {platform === "tiktok"    && "🎵"}
-          {platform === "twitch"    && "🎮"}
+          <PlatformIcon platform={platform} size={40} color={meta.color} />
         </div>
         <h2 className="text-xl font-bold text-[var(--color-text)]">
           Aún no tienes un perfil de {meta.label}
@@ -320,9 +318,10 @@ export default function PlatformPage({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1
-            className="font-[var(--font-display)] text-3xl sm:text-4xl font-bold"
+            className="font-[var(--font-display)] text-3xl sm:text-4xl font-bold flex items-center gap-3"
             style={{ color: meta.color }}
           >
+            <PlatformIcon platform={platform} size={36} color={meta.color} />
             {meta.label}
           </h1>
           <p className="mt-1 text-sm text-[var(--color-muted)]">

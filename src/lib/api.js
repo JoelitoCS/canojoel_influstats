@@ -66,8 +66,15 @@ export const metricsApi = {
   // Obtiene el historial completo → GET /api/metrics/:profileId
   getAll: (profileId) => apiFetch(`/api/metrics/${profileId}`),
 
-  // Resumen global de métricas actuales del usuario → GET /api/metrics/summary
+  // Resumen global de metricas actuales del usuario -> GET /api/metrics/summary
   getSummary: () => apiFetch('/api/metrics/summary'),
+};
+
+// Endpoints de ranking publico (requiere autenticacion).
+export const rankingApi = {
+  // GET /api/ranking?platform=instagram&sort=followers
+  get: (platform, sort = 'followers') =>
+    apiFetch(`/api/ranking?platform=${platform}&sort=${sort}`),
 };
 
 // Endpoints de perfiles sociales asociados al usuario autenticado.
