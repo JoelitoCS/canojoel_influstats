@@ -4,61 +4,45 @@ import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import Card from "@/components/ui/Card";
+import MetricCard from "@/components/ui/MetricCard";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { profilesApi } from "@/lib/api";
+import { profilesApi, metricsApi } from "@/lib/api";
 import ProfilesTable from "@/components/ui/ProfilesTable";
 
 // Plataformas permitidas por el CHECK de la tabla social_profiles.
 const platforms = [
   { value: "instagram", label: "Instagram" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "youtube", label: "YouTube" },
-  { value: "twitch", label: "Twitch" },
+  { value: "tiktok",    label: "TikTok"    },
+  { value: "youtube",   label: "YouTube"   },
+  { value: "twitch",    label: "Twitch"    },
 ];
 
-// Métricas placeholder — se conectarán al backend en sprints futuros.
-const defaultMetrics = [
-  {
-    label: "Total Seguidores",
-    value: "0",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
-  },
-  {
-    label: "Engagement",
-    value: "0%",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Perfiles",
-    value: "0",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </svg>
-    ),
-  },
-  {
-    label: "Campañas",
-    value: "0",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
-  },
-];
+// ── Iconos SVG para las metric cards ────────────────────────────────────────
+const IconFollowers = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+const IconEngagement = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+const IconProfiles = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8M12 17v4" />
+  </svg>
+);
+const IconViews = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
 
 // Valida URL en cliente.
 const isValidUrl = (value) => {
@@ -74,52 +58,68 @@ const subscribeStorage = (cb) => {
   window.addEventListener("storage", cb);
   return () => window.removeEventListener("storage", cb);
 };
-const getToken = () => localStorage.getItem("token");
+const getToken   = () => localStorage.getItem("token");
 const serverSnap = () => null;
 
 // Formulario vacío por defecto.
 const emptyForm = { name: "", url: "", platform: "instagram" };
 
-// Dashboard principal con CRUD completo de perfiles sociales.
+// ─────────────────────────────────────────────────────────────────────────────
+//  Dashboard principal — Historia 16: cards con métricas reales + animaciones
+// ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const router = useRouter();
-  const token = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
+  const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  // ── Estado de perfiles ──
+  // ── Estado de perfiles ────────────────────────────────────────────────────
+  const [profiles, setProfiles]               = useState([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [profilesError, setProfilesError]     = useState("");
 
-  const [profilesError, setProfilesError] = useState("");
+  // ── Estado del resumen de métricas (Historia 16) ──────────────────────────
+  const [summary, setSummary]               = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
 
-  // ── Estado del formulario de crear ──
-  const [form, setForm] = useState({ ...emptyForm });
-  const [errors, setErrors] = useState({});
+  // ── Estado del formulario de crear ────────────────────────────────────────
+  const [form, setForm]       = useState({ ...emptyForm });
+  const [errors, setErrors]   = useState({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [profiles, setProfiles] = useState([]);       // lista de perfiles del usuario
-  const [loadingProfiles, setLoadingProfiles] = useState(true); // spinner inicial
-  
 
-  // ── Estado del modal de edición ──
+  // ── Estado del modal de edición ───────────────────────────────────────────
   const [editingProfile, setEditingProfile] = useState(null);
-  const [editForm, setEditForm] = useState({ ...emptyForm });
-  const [editErrors, setEditErrors] = useState({});
-  const [editLoading, setEditLoading] = useState(false);
+  const [editForm, setEditForm]             = useState({ ...emptyForm });
+  const [editErrors, setEditErrors]         = useState({});
+  const [editLoading, setEditLoading]       = useState(false);
 
-  // ── Estado de eliminación ──
-  const [deletingId, setDeletingId] = useState(null);
+  // ── Estado de eliminación ─────────────────────────────────────────────────
+  const [deletingId, setDeletingId]       = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Redirige si no hay token.
   useEffect(() => {
-    if (!token) router.replace("/login");
+    if (token === null) router.replace("/login");
   }, [router, token]);
 
-  // Carga los perfiles del usuario al montar.
+  // ── Carga el resumen de métricas ──────────────────────────────────────────
+  const fetchSummary = useCallback(async () => {
+    try {
+      setLoadingSummary(true);
+      const data = await metricsApi.getSummary();
+      setSummary(data?.summary ?? null);
+    } catch {
+      setSummary(null);
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, []);
+
+  // ── Carga los perfiles del usuario ────────────────────────────────────────
   const fetchProfiles = useCallback(async () => {
     try {
       setLoadingProfiles(true);
       setProfilesError("");
       const data = await profilesApi.getAll();
-      // La API puede devolver { profiles: [...] } o directamente un array.
       setProfiles(Array.isArray(data) ? data : data?.profiles || []);
     } catch (err) {
       setProfilesError(err.message || "Error al cargar perfiles");
@@ -129,14 +129,56 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (token) fetchProfiles();
-  }, [token, fetchProfiles]);
+    if (token) {
+      fetchProfiles();
+      fetchSummary();
+    }
+  }, [token, fetchProfiles, fetchSummary]);
 
-  // ── Métricas derivadas del número real de perfiles ──
-  const metrics = defaultMetrics.map((m) => {
-    if (m.label === "Perfiles") return { ...m, value: String(profiles.length) };
-    return m;
-  });
+  // ── Definición de las metric cards con datos reales ───────────────────────
+  // El número de perfiles proviene de profiles.length (siempre disponible);
+  // el resto de valores del resumen de métricas del backend.
+  const metricCards = [
+    {
+      label:    "Total Seguidores",
+      value:    summary?.totalFollowers ?? 0,
+      suffix:   "",
+      icon:     <IconFollowers />,
+      variant:  "accent",
+      formatter:(n) => n >= 1_000_000
+        ? `${(n / 1_000_000).toFixed(1)}M`
+        : n >= 1_000
+          ? `${(n / 1_000).toFixed(1)}k`
+          : n.toLocaleString("es-ES"),
+    },
+    {
+      label:    "Engagement medio",
+      value:    summary?.avgEngagement ?? 0,
+      suffix:   "%",
+      icon:     <IconEngagement />,
+      variant:  "success",
+      decimals: 2,
+    },
+    {
+      label:    "Perfiles",
+      value:    profiles.length,
+      suffix:   "",
+      icon:     <IconProfiles />,
+      variant:  "secondary",
+    },
+    {
+      label:    "Visitas totales",
+      value:    summary?.totalViews ?? 0,
+      suffix:   "",
+      icon:     <IconViews />,
+      variant:  "warning",
+      formatter:(n) => n >= 1_000_000
+        ? `${(n / 1_000_000).toFixed(1)}M`
+        : n >= 1_000
+          ? `${(n / 1_000).toFixed(1)}k`
+          : n.toLocaleString("es-ES"),
+    },
+  ];
 
   // ══════════════════════════════════════════════════
   //  CREAR PERFIL
@@ -166,9 +208,8 @@ export default function DashboardPage() {
       setSuccess(data.message || "Perfil social creado correctamente");
       setForm({ ...emptyForm });
       fetchProfiles();
+      fetchSummary(); // refrescar métricas tras añadir perfil
     } catch (error) {
-      // Guard de auth también en creación
-      handleAuthError(error);
       setErrors({ general: error.message });
     } finally {
       setLoading(false);
@@ -181,8 +222,8 @@ export default function DashboardPage() {
   const openEdit = (profile) => {
     setEditingProfile(profile);
     setEditForm({
-      name: profile.username || profile.name || "",
-      url: profile.url || "",
+      name:     profile.username || profile.name || "",
+      url:      profile.url || "",
       platform: profile.platform || "instagram",
     });
     setEditErrors({});
@@ -222,6 +263,7 @@ export default function DashboardPage() {
       await profilesApi.delete(deletingId);
       setDeletingId(null);
       fetchProfiles();
+      fetchSummary(); // refrescar métricas tras eliminar perfil
     } catch (error) {
       setProfilesError(error.message);
       setDeletingId(null);
@@ -230,12 +272,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (!token) return null;
+  if (token === null) return null;
 
   return (
     <AppShell>
       <div className="grid gap-6 animate-fade-in">
-        {/* Header de página */}
+
+        {/* ── Header de página ─────────────────────────────────────────── */}
         <div>
           <h1 className="font-[var(--font-display)] text-3xl text-[var(--color-text)] sm:text-4xl">
             Dashboard
@@ -245,29 +288,92 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* ── Stat cards ── */}
+        {/* ── Stat cards — Historia 16 ─────────────────────────────────── */}
+        {/* Cada MetricCard anima su valor con countUp y muestra skeleton */}
+        {/* mientras loadingSummary || loadingProfiles sea true.           */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((m) => (
-            <div
-              key={m.label}
-              className="stat-card surface-glow rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 backdrop-blur-xl transition-all duration-300 hover:border-[var(--color-border-strong)]"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--color-muted)]">
-                    {m.label}
-                  </p>
-                  <p className="mt-2 text-3xl font-bold text-[var(--color-text)]">{m.value}</p>
-                </div>
-                <span className="grid h-10 w-10 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
-                  {m.icon}
-                </span>
-              </div>
-            </div>
+          {metricCards.map((card) => (
+            <MetricCard
+              key={card.label}
+              label={card.label}
+              value={card.value}
+              suffix={card.suffix}
+              icon={card.icon}
+              variant={card.variant}
+              loading={loadingSummary || loadingProfiles}
+              decimals={card.decimals ?? 0}
+              formatter={card.formatter}
+            />
           ))}
         </div>
 
-        {/* ── Mis perfiles sociales ── */}
+        {/* ── Resumen visual por plataforma (Historia 16 — visual summary) */}
+        {!loadingSummary && summary && summary.totalFollowers > 0 && (
+          <Card>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-[var(--color-text)]">
+                Distribución por plataforma
+              </h2>
+              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+                Seguidores / suscriptores de la última semana registrada
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                { key: "instagram", label: "Instagram", color: "var(--color-instagram)" },
+                { key: "tiktok",    label: "TikTok",    color: "var(--color-tiktok)"    },
+                { key: "youtube",   label: "YouTube",   color: "var(--color-youtube)"   },
+                { key: "twitch",    label: "Twitch",    color: "var(--color-twitch)"    },
+              ]
+                .filter((p) => (summary.platformBreakdown?.[p.key] ?? 0) > 0)
+                .map((platform) => {
+                  const count   = summary.platformBreakdown[platform.key] ?? 0;
+                  const pct     = summary.totalFollowers > 0
+                    ? Math.round((count / summary.totalFollowers) * 100)
+                    : 0;
+
+                  return (
+                    <div key={platform.key}>
+                      <div className="mb-1.5 flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          {/* Dot de color de plataforma */}
+                          <span
+                            className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                            style={{ background: platform.color }}
+                          />
+                          <span className="font-medium text-[var(--color-text)]">
+                            {platform.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[var(--color-muted)]">
+                            {count.toLocaleString("es-ES")}
+                          </span>
+                          <span className="w-8 text-right font-semibold text-[var(--color-text)]">
+                            {pct}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Barra de progreso animada con CSS transition */}
+                      <div className="engagement-bar">
+                        <div
+                          className="engagement-bar__fill"
+                          style={{
+                            width: `${pct}%`,
+                            background: platform.color,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </Card>
+        )}
+
+        {/* ── Mis perfiles sociales ────────────────────────────────────── */}
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -304,7 +410,7 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* ── Formulario de creación ── */}
+        {/* ── Formulario de creación ───────────────────────────────────── */}
         <Card>
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-[var(--color-text)]">Añadir perfil social</h2>
@@ -373,29 +479,6 @@ export default function DashboardPage() {
               Guardar perfil
             </Button>
           </form>
-        </Card>
-
-        {/* La primera card sirve para crear, esta sirve para mostrar los existentes */}
-
-        <Card>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Mis perfiles sociales</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-              Gestiona tus redes sociales vinculadas.
-            </p>
-          </div>
-
-          {/* Spinner mientras se cargan los perfiles por primera vez */}
-          {loadingProfiles ? (
-            <p className="py-6 text-center text-sm text-[var(--color-muted)]">Cargando perfiles…</p>
-          ) : (
-            // Tabla con botones de editar/eliminar (historias 2 y 3)
-            <ProfilesTable
-              profiles={profiles}
-              onEdit={(profile) => setEditingProfile(profile)} // historia 2
-              onDelete={(id) => handleDelete(id)}              // pendiente historia 3
-            />
-          )}
         </Card>
       </div>
 
@@ -468,11 +551,7 @@ export default function DashboardPage() {
                 <Button type="submit" loading={editLoading} className="flex-1">
                   Guardar cambios
                 </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setEditingProfile(null)}
-                >
+                <Button type="button" variant="ghost" onClick={() => setEditingProfile(null)}>
                   Cancelar
                 </Button>
               </div>
@@ -499,9 +578,7 @@ export default function DashboardPage() {
               </span>
               <div>
                 <h3 className="text-base font-semibold text-[var(--color-text)]">Eliminar perfil</h3>
-                <p className="text-sm text-[var(--color-muted)]">
-                  Esta acción no se puede deshacer.
-                </p>
+                <p className="text-sm text-[var(--color-muted)]">Esta acción no se puede deshacer.</p>
               </div>
             </div>
 
@@ -519,11 +596,7 @@ export default function DashboardPage() {
                 )}
                 Sí, eliminar
               </button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setDeletingId(null)}
-              >
+              <Button type="button" variant="ghost" onClick={() => setDeletingId(null)}>
                 Cancelar
               </Button>
             </div>
@@ -531,6 +604,5 @@ export default function DashboardPage() {
         </div>
       )}
     </AppShell>
-      
   );
 }

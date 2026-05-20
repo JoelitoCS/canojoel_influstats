@@ -65,6 +65,9 @@ export const metricsApi = {
 
   // Obtiene el historial completo → GET /api/metrics/:profileId
   getAll: (profileId) => apiFetch(`/api/metrics/${profileId}`),
+
+  // Resumen global de métricas actuales del usuario → GET /api/metrics/summary
+  getSummary: () => apiFetch('/api/metrics/summary'),
 };
 
 // Endpoints de perfiles sociales asociados al usuario autenticado.

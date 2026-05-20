@@ -37,7 +37,7 @@ const themeScript = `
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" data-theme="dark" className={`${playfair.variable} ${outfit.variable}`}>
+    <html lang="es" data-theme="dark" suppressHydrationWarning className={`${playfair.variable} ${outfit.variable}`}>
       <body className="min-h-screen font-[var(--font-body)] antialiased">
         <Script
           id="theme-init"
