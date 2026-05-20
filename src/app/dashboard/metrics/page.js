@@ -11,6 +11,63 @@ import Input from "@/components/ui/Input";
 import { profilesApi, metricsApi } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Cuántas filas mostrar por página en la tabla de historial de métricas.
+// ─────────────────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 8;
+
+// ── Badge de crecimiento (reutiliza la lógica de PlatformPage) ───────────────
+// Verde con flecha ▲ si crecimiento positivo, rojo con ▼ si negativo,
+// gris neutro si es el primer registro (growth === null).
+function GrowthBadge({ value }) {
+  if (value === null || value === undefined) {
+    return (
+      <span className="rounded-full bg-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]">
+        Primera semana
+      </span>
+    );
+  }
+  const num      = parseFloat(value);
+  const positive = num >= 0;
+  return (
+    <span className={[
+      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold",
+      positive
+        ? "bg-[var(--color-success-soft)] text-[var(--color-success)]"
+        : "bg-[var(--color-error-soft)] text-[var(--color-error)]",
+    ].join(" ")}>
+      {positive ? "▲" : "▼"} {Math.abs(num).toFixed(2)} %
+    </span>
+  );
+}
+
+// ── Encabezado de columna ordenable ──────────────────────────────────────────
+// Muestra la etiqueta de columna más flechitas indicando la dirección.
+// Al pulsar invierte la dirección si ya era activa, o cambia la columna.
+function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
+  const isActive = colKey === sortKey;
+  return (
+    <th className="pb-3 pr-4 last:pr-0" style={{ whiteSpace: "nowrap" }}>
+      <button
+        onClick={() => onSort(colKey)}
+        className={[
+          "flex items-center gap-1 text-xs font-semibold uppercase tracking-widest transition-colors duration-150",
+          isActive
+            ? "text-[var(--color-accent)]"
+            : "text-[var(--color-muted)] hover:text-[var(--color-text)]",
+        ].join(" ")}
+      >
+        {label}
+        {/* Flechas: la activa se resalta, la inactiva queda atenuada */}
+        <span className="flex flex-col leading-none" style={{ fontSize: 8 }}>
+          <span style={{ opacity: isActive && sortDir === "asc"  ? 1 : 0.25 }}>▲</span>
+          <span style={{ opacity: isActive && sortDir === "desc" ? 1 : 0.25 }}>▼</span>
+        </span>
+      </button>
+    </th>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  CONFIGURACIÓN DE CAMPOS POR PLATAFORMA
 //
 //  Cada entrada define qué inputs mostrar y cómo enviarlos al backend.
@@ -115,6 +172,17 @@ export default function MetricsPage() {
 
   const [history, setHistory]               = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // ── Ordenación de la tabla de historial ───────────────────────────────────
+  // sortKey: columna activa. sortDir: "desc" mayor→menor, "asc" menor→mayor.
+  const [sortKey, setSortKey] = useState("weekDate");
+  const [sortDir, setSortDir] = useState("desc");
+
+  // ── Paginación de la tabla de historial ────────────────────────────────
+  // Vuelve a la página 1 cada vez que cambia el perfil, el criterio de
+  // ordenación o llegan datos nuevos (después de guardar una entrada).
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [form.profileId, sortKey, sortDir, history]);
 
   // useSyncExternalStore garantiza que servidor y cliente devuelvan el mismo
   // snapshot inicial (null), evitando el hydration mismatch de Next.js.
@@ -244,7 +312,7 @@ export default function MetricsPage() {
     });
 
   // ── Columnas de la tabla de historial según plataforma activa ───────────
-  // Mostramos solo los campos que usa esa plataforma + engagement.
+  // Mostramos solo los campos que usa esa plataforma + engagement + crecimiento.
   const historyColumns = useMemo(() => {
     if (!platformConfig) return [];
     return [
@@ -260,13 +328,41 @@ export default function MetricsPage() {
       {
         key: "engagement",
         label: "Engagement",
-        // Badge verde para el engagement.
         format: (v) => v,
         isEngagement: true,
+      },
+      // Columna Crecimiento: isGrowth:true le dice al renderizador que use GrowthBadge
+      {
+        key: "growth",
+        label: "Crecimiento",
+        format: (v) => v,
+        isGrowth: true,
       },
     ];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platformConfig]);
+
+  // Historial ordenado: recalculado al cambiar array, columna o dirección
+  const sortedHistory = useMemo(() => {
+    return [...history].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av === null || av === undefined) return 1;
+      if (bv === null || bv === undefined) return -1;
+      const cmp = typeof av === "string" ? av.localeCompare(bv) : Number(av) - Number(bv);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [history, sortKey, sortDir]);
+
+  // Páginas totales y porción de la página actual
+  const totalPages    = Math.max(1, Math.ceil(sortedHistory.length / PAGE_SIZE));
+  const paginatedRows = sortedHistory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Manejador de clic en encabezado: invierte o cambia columna de orden
+  const handleSort = (key) => {
+    if (key === sortKey) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    else { setSortKey(key); setSortDir("desc"); }
+  };
 
   return (
     <AppShell>
@@ -413,18 +509,19 @@ export default function MetricsPage() {
 
         {/* ── Historial del perfil seleccionado ───────────────────────── */}
         <Card>
-          <div className="mb-4 flex items-center justify-between">
+          {/* Cabecera con contador. El subtítulo recuerda la funcionalidad de ordenación. */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-[var(--color-text)]">
                 Historial de métricas
               </h2>
               <p className="mt-0.5 text-sm text-[var(--color-muted)]">
-                Registros guardados para el perfil seleccionado.
+                Pulsa una cabecera para ordenar · El color de fila indica el crecimiento semanal
               </p>
             </div>
-            {history.length > 0 && (
+            {sortedHistory.length > 0 && (
               <span className="rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-accent)]">
-                {history.length} {history.length === 1 ? "registro" : "registros"}
+                {sortedHistory.length} {sortedHistory.length === 1 ? "registro" : "registros"}
               </span>
             )}
           </div>
@@ -440,40 +537,132 @@ export default function MetricsPage() {
               <span className="text-[var(--color-accent)]">¡Introduce tu primera entrada arriba!</span>
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)] text-left text-xs uppercase tracking-widest text-[var(--color-muted)]">
-                    {/* Las columnas se generan dinámicamente según la plataforma */}
-                    {historyColumns.map((col) => (
-                      <th key={col.key} className="pb-3 pr-4 last:pr-0">
-                        {col.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--color-border)]">
-                  {history.map((row) => (
-                    <tr key={row.id} className="transition-colors hover:bg-[var(--color-surface-strong)]/40">
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    {/* Cada columna es pulsable para ordenar ASC o DESC */}
+                    <tr className="border-b border-[var(--color-border)] text-left">
                       {historyColumns.map((col) => (
-                        <td key={col.key} className="py-3 pr-4 last:pr-0">
-                          {col.isEngagement ? (
-                            // Badge verde para el engagement calculado (solo lectura).
-                            <span className="rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-accent)]">
-                              {parseFloat(row[col.key]).toFixed(2)} %
-                            </span>
-                          ) : (
-                            <span className={col.key === "weekDate" ? "font-medium text-[var(--color-text)]" : "text-[var(--color-text)]"}>
-                              {col.format(row[col.key])}
-                            </span>
-                          )}
-                        </td>
+                        <SortTh
+                          key={col.key}
+                          label={col.label}
+                          colKey={col.key}
+                          sortKey={sortKey}
+                          sortDir={sortDir}
+                          onSort={handleSort}
+                        />
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)]">
+                    {/* Solo mostramos la porción de la página actual */}
+                    {paginatedRows.map((row) => {
+                      // Calculamos el color de fondo de la fila según growth:
+                      // verde suave si positivo, rojo suave si negativo, sin color si null
+                      const g = row.growth !== null && row.growth !== undefined
+                        ? parseFloat(row.growth) : null;
+                      const rowBg = g === null ? undefined
+                        : g >= 0 ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)";
+
+                      return (
+                        <tr
+                          key={row.id}
+                          className="transition-colors hover:bg-[var(--color-surface-strong)]/40"
+                          style={{ background: rowBg }}
+                        >
+                          {historyColumns.map((col) => (
+                            <td key={col.key} className="py-3 pr-4 last:pr-0">
+                              {col.isEngagement ? (
+                                // Badge de engagement calculado (azul/acento)
+                                <span className="rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-accent)]">
+                                  {parseFloat(row[col.key] ?? 0).toFixed(2)} %
+                                </span>
+                              ) : col.isGrowth ? (
+                                // Badge de crecimiento (verde/rojo/gris)
+                                <GrowthBadge value={row[col.key]} />
+                              ) : (
+                                // Campo normal: fecha en negrita, resto en color texto
+                                <span className={col.key === "weekDate" ? "font-medium text-[var(--color-text)]" : "text-[var(--color-text)]"}>
+                                  {col.format(row[col.key])}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ── Controles de paginación ──────────────────────────────
+                  Ocultos cuando todos los registros caben en una página. */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <span className="text-xs text-[var(--color-muted)]">
+                    Página {page} de {totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    {/* Botón Anterior: deshabilitado en la primera página */}
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className={[
+                        "rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-semibold transition-all duration-150",
+                        page === 1
+                          ? "cursor-not-allowed border-[var(--color-border)] text-[var(--color-muted)] opacity-40"
+                          : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                      ].join(" ")}
+                    >
+                      ← Anterior
+                    </button>
+
+                    {/* Botones de número con elipsis si hay saltos entre páginas */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((n) => n === 1 || n === totalPages || (n >= page - 1 && n <= page + 1))
+                      .reduce((acc, n, i, arr) => {
+                        if (i > 0 && n - arr[i - 1] > 1) acc.push("…");
+                        acc.push(n);
+                        return acc;
+                      }, [])
+                      .map((item, i) =>
+                        item === "…" ? (
+                          <span key={`e-${i}`} className="px-1 text-xs text-[var(--color-muted)]">…</span>
+                        ) : (
+                          <button
+                            key={item}
+                            onClick={() => setPage(item)}
+                            className={[
+                              "min-w-[28px] rounded-[var(--radius-sm)] border px-2 py-1.5 text-xs font-semibold transition-all duration-150",
+                              page === item
+                                ? "border-[var(--color-accent)] text-white"
+                                : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                            ].join(" ")}
+                            style={page === item ? { background: "var(--color-accent)" } : {}}
+                          >
+                            {item}
+                          </button>
+                        )
+                      )}
+
+                    {/* Botón Siguiente: deshabilitado en la última página */}
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      className={[
+                        "rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-semibold transition-all duration-150",
+                        page === totalPages
+                          ? "cursor-not-allowed border-[var(--color-border)] text-[var(--color-muted)] opacity-40"
+                          : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                      ].join(" ")}
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </Card>
       </div>

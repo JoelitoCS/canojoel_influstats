@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+// ── Cuántas filas mostrar por página en la tabla de historial ────────────────
+const PAGE_SIZE = 8;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  PlatformPage — componente genérico que renderizan las 4 páginas de plataforma.
@@ -174,6 +177,37 @@ function GrowthBadge({ value }) {
   );
 }
 
+// ── Encabezado de columna ordenable ─────────────────────────────────────────
+// Muestra la etiqueta y una flecha que indica la dirección activa.
+// Al pulsar, llama a onSort con la clave de columna.
+function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
+  const isActive = colKey === sortKey;
+  return (
+    <th
+      className="pb-3 pr-4 last:pr-0"
+      style={{ whiteSpace: "nowrap" }}
+    >
+      {/* Botón invisible que cubre toda la celda para detectar el clic */}
+      <button
+        onClick={() => onSort(colKey)}
+        className={[
+          "flex items-center gap-1 transition-colors duration-150",
+          isActive
+            ? "text-[var(--color-accent)]"  // columna activa en color acento
+            : "text-[var(--color-muted)] hover:text-[var(--color-text)]",
+        ].join(" ")}
+      >
+        {label}
+        {/* Flechas: muestra la activa sólida, la inactiva tenue */}
+        <span className="flex flex-col leading-none" style={{ fontSize: 8 }}>
+          <span style={{ opacity: isActive && sortDir === "asc"  ? 1 : 0.25 }}>▲</span>
+          <span style={{ opacity: isActive && sortDir === "desc" ? 1 : 0.25 }}>▼</span>
+        </span>
+      </button>
+    </th>
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function PlatformPage({
   platform,
@@ -190,11 +224,55 @@ export default function PlatformPage({
   const latest    = filtered[0] || null; // más reciente
   const [visible, setVisible] = useState(false);
 
+  // ── Estado de ordenación de la tabla ─────────────────────────────────────
+  // sortKey: columna activa | sortDir: "desc" = mayor→menor, "asc" = menor→mayor
+  const [sortKey, setSortKey] = useState("weekDate");
+  const [sortDir, setSortDir] = useState("desc");
+
+  // ── Estado de paginación ──────────────────────────────────────────────────
+  // Vuelve a la página 1 si cambia el período o la ordenación.
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [period, sortKey, sortDir]);
+
   // Aparece todo con un pequeño delay tras montar
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, []);
+
+  // ── Datos ordenados y paginados ───────────────────────────────────────────
+  // Primero ordenamos el array filtrado por la columna activa.
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      // Los valores nulos (p. ej. growth de la primera semana) van siempre al final.
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av === null || av === undefined) return 1;
+      if (bv === null || bv === undefined) return -1;
+
+      // Comparación de fechas como strings ISO (YYYY-MM-DD) es léxicamente correcta.
+      const cmp = typeof av === "string"
+        ? av.localeCompare(bv)
+        : Number(av) - Number(bv);
+
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filtered, sortKey, sortDir]);
+
+  // Calculamos el número total de páginas y la porción visible.
+  const totalPages  = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const paginated   = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // ── Manejador del clic en cabecera de columna ─────────────────────────────
+  // Si se pulsa la misma columna invierte la dirección; si es otra, resetea a desc.
+  const handleSort = (key) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
 
   // ── Sin perfil creado ─────────────────────────────────────────────────────
   if (!profile) {
@@ -370,55 +448,198 @@ export default function PlatformPage({
       {/* ── Tabla de historial ──────────────────────────────────────────── */}
       {!loading && !noData && (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-          <h2 className="mb-4 text-base font-semibold text-[var(--color-text)]">
-            Historial de registros
-          </h2>
+
+          {/* Cabecera de la sección con contador de registros */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-[var(--color-text)]">
+              Historial de registros
+            </h2>
+            <span className="rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-accent)]">
+              {sorted.length} {sorted.length === 1 ? "registro" : "registros"}
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
+                {/* Cada encabezado es pulsable para ordenar por esa columna.
+                    La flecha indica la columna activa y la dirección actual. */}
                 <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-widest text-[var(--color-muted)]">
-                  <th className="pb-3 pr-4">Semana</th>
+
+                  {/* Columna Semana: siempre la primera, ordena por weekDate */}
+                  <SortTh
+                    label="Semana"
+                    colKey="weekDate"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+
+                  {/* Columnas dinámicas de la plataforma (views, likes, etc.) */}
                   {chartFields.map(({ key, label }) => (
-                    <th key={key} className="pb-3 pr-4">{label}</th>
+                    <SortTh
+                      key={key}
+                      label={label}
+                      colKey={key}
+                      sortKey={sortKey}
+                      sortDir={sortDir}
+                      onSort={handleSort}
+                    />
                   ))}
-                  <th className="pb-3 pr-4">Engagement</th>
-                  <th className="pb-3">Crecimiento</th>
+
+                  {/* Engagement: también ordenable */}
+                  <SortTh
+                    label="Engagement"
+                    colKey="engagement"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
+
+                  {/* Crecimiento: también ordenable */}
+                  <SortTh
+                    label="Crecimiento"
+                    colKey="growth"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                  />
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-[var(--color-border)]">
-                {filtered.map((row, idx) => (
-                  <tr
-                    key={row.id}
-                    className="transition-colors hover:bg-[var(--color-surface-strong)]/40"
-                    style={{
-                      opacity:    visible ? 1 : 0,
-                      transform:  visible ? "none" : "translateX(-8px)",
-                      transition: `opacity 0.3s ease ${idx * 40}ms, transform 0.3s ease ${idx * 40}ms`,
-                    }}
-                  >
-                    <td className="py-3 pr-4 font-medium text-[var(--color-text)]">
-                      {new Date(row.weekDate).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                    </td>
-                    {chartFields.map(({ key }) => (
-                      <td key={key} className="py-3 pr-4 text-[var(--color-text)]">
-                        {row[key] !== null && row[key] !== undefined
-                          ? Number(row[key]).toLocaleString("es-ES")
-                          : "—"}
+                {/* Iteramos solo sobre la página actual de datos */}
+                {paginated.map((row, idx) => {
+                  // ── Color de fila según crecimiento ──────────────────
+                  // Verde muy suave si growth > 0, rojo si < 0, neutro si null.
+                  const g = row.growth !== null && row.growth !== undefined
+                    ? parseFloat(row.growth)
+                    : null;
+                  const rowBg = g === null
+                    ? undefined
+                    : g >= 0
+                      ? "rgba(34,197,94,0.06)"   // verde suave
+                      : "rgba(239,68,68,0.06)";  // rojo suave
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className="transition-colors hover:bg-[var(--color-surface-strong)]/40"
+                      style={{
+                        opacity:    visible ? 1 : 0,
+                        transform:  visible ? "none" : "translateX(-8px)",
+                        // Escalona la animación de entrada por índice de fila
+                        transition: `opacity 0.3s ease ${idx * 40}ms, transform 0.3s ease ${idx * 40}ms`,
+                        // Fondo de color según crecimiento de esa semana
+                        background: rowBg,
+                      }}
+                    >
+                      {/* Fecha de la semana */}
+                      <td className="py-3 pr-4 font-medium text-[var(--color-text)]">
+                        {new Date(row.weekDate).toLocaleDateString("es-ES", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                        })}
                       </td>
-                    ))}
-                    <td className="py-3 pr-4">
-                      <span className="rounded-full bg-[var(--color-secondary-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-secondary)]">
-                        {parseFloat(row.engagement ?? 0).toFixed(2)} %
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <GrowthBadge value={row.growth} />
-                    </td>
-                  </tr>
-                ))}
+
+                      {/* Campos numéricos de la plataforma */}
+                      {chartFields.map(({ key }) => (
+                        <td key={key} className="py-3 pr-4 text-[var(--color-text)]">
+                          {row[key] !== null && row[key] !== undefined
+                            ? Number(row[key]).toLocaleString("es-ES")
+                            : "—"}
+                        </td>
+                      ))}
+
+                      {/* Badge de engagement (azul/morado) */}
+                      <td className="py-3 pr-4">
+                        <span className="rounded-full bg-[var(--color-secondary-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-secondary)]">
+                          {parseFloat(row.engagement ?? 0).toFixed(2)} %
+                        </span>
+                      </td>
+
+                      {/* Badge de crecimiento (verde/rojo/gris) */}
+                      <td className="py-3">
+                        <GrowthBadge value={row.growth} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+
+          {/* ── Controles de paginación ──────────────────────────────── */}
+          {/* Solo se muestran si hay más de una página */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between gap-4">
+              {/* Indicador de página actual */}
+              <span className="text-xs text-[var(--color-muted)]">
+                Página {page} de {totalPages}
+              </span>
+
+              <div className="flex gap-2">
+                {/* Botón Anterior */}
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className={[
+                    "rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-semibold transition-all duration-150",
+                    page === 1
+                      ? "cursor-not-allowed border-[var(--color-border)] text-[var(--color-muted)] opacity-40"
+                      : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                  ].join(" ")}
+                >
+                  ← Anterior
+                </button>
+
+                {/* Numeración de páginas: muestra máx. 5 botones centrados en la actual */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((n) => n === 1 || n === totalPages ||
+                    (n >= page - 1 && n <= page + 1))
+                  .reduce((acc, n, i, arr) => {
+                    // Inserta "…" si hay un salto entre páginas consecutivas
+                    if (i > 0 && n - arr[i - 1] > 1) acc.push("…");
+                    acc.push(n);
+                    return acc;
+                  }, [])
+                  .map((item, i) =>
+                    item === "…" ? (
+                      <span key={`ellipsis-${i}`} className="px-1 text-xs text-[var(--color-muted)]">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setPage(item)}
+                        className={[
+                          "min-w-[28px] rounded-[var(--radius-sm)] border px-2 py-1.5 text-xs font-semibold transition-all duration-150",
+                          page === item
+                            ? "border-[var(--color-accent)] text-white"
+                            : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                        ].join(" ")}
+                        style={page === item ? { background: meta.color } : {}}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+
+                {/* Botón Siguiente */}
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className={[
+                    "rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-semibold transition-all duration-150",
+                    page === totalPages
+                      ? "cursor-not-allowed border-[var(--color-border)] text-[var(--color-muted)] opacity-40"
+                      : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                  ].join(" ")}
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
