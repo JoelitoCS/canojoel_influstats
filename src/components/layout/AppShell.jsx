@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 // Iconos SVG inline para el sidebar — evita dependencias externas.
 const icons = {
   dashboard: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
+  grid: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="7" height="7" rx="1" />
       <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -95,10 +103,11 @@ const navSections = [
   {
     title: "PLATAFORMAS",
     items: [
-      { href: "/dashboard/tiktok",    label: "TikTok",    icon: "tiktok"    },
-      { href: "/dashboard/instagram", label: "Instagram", icon: "instagram" },
-      { href: "/dashboard/twitch",    label: "Twitch",    icon: "twitch"    },
-      { href: "/dashboard/youtube",   label: "YouTube",   icon: "youtube"   },
+      { href: "/dashboard/plataformas",                  label: "Todas",     icon: "grid"      },
+      { href: "/dashboard/plataformas?tab=instagram",    label: "Instagram", icon: "instagram" },
+      { href: "/dashboard/plataformas?tab=tiktok",       label: "TikTok",    icon: "tiktok"    },
+      { href: "/dashboard/plataformas?tab=twitch",       label: "Twitch",    icon: "twitch"    },
+      { href: "/dashboard/plataformas?tab=youtube",      label: "YouTube",   icon: "youtube"   },
     ],
   },
 ];
@@ -122,10 +131,23 @@ const getAvatarLetter = (email) => {
 export default function AppShell({ children }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const token = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
   const userEmail = useSyncExternalStore(subscribeStorage, getEmail, serverEmail);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const avatarLetter = getAvatarLetter(userEmail);
+
+  // Determina si un item del sidebar está activo, considerando query params
+  const isItemActive = (href) => {
+    const [hrefPath, hrefQuery] = href.split("?");
+    if (hrefPath !== pathname) return false;
+    if (!hrefQuery) return !searchParams.toString(); // "/plataformas" activo solo sin ?tab
+    const params = new URLSearchParams(hrefQuery);
+    for (const [k, v] of params.entries()) {
+      if (searchParams.get(k) !== v) return false;
+    }
+    return true;
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -183,7 +205,7 @@ export default function AppShell({ children }) {
               )}
               <div className="flex flex-col gap-0.5">
                 {section.items.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = isItemActive(item.href);
                   return (
                     <Link
                       key={item.href}
