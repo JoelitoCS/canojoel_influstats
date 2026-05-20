@@ -103,11 +103,11 @@ const navSections = [
   {
     title: "PLATAFORMAS",
     items: [
-      { href: "/dashboard/plataformas",                  label: "Todas",     icon: "grid"      },
-      { href: "/dashboard/plataformas?tab=instagram",    label: "Instagram", icon: "instagram" },
-      { href: "/dashboard/plataformas?tab=tiktok",       label: "TikTok",    icon: "tiktok"    },
-      { href: "/dashboard/plataformas?tab=twitch",       label: "Twitch",    icon: "twitch"    },
-      { href: "/dashboard/plataformas?tab=youtube",      label: "YouTube",   icon: "youtube"   },
+      { href: "/dashboard/plataformas",   label: "Todas",     icon: "grid"      },
+      { href: "/dashboard/instagram",     label: "Instagram", icon: "instagram" },
+      { href: "/dashboard/tiktok",        label: "TikTok",    icon: "tiktok"    },
+      { href: "/dashboard/twitch",        label: "Twitch",    icon: "twitch"    },
+      { href: "/dashboard/youtube",       label: "YouTube",   icon: "youtube"   },
     ],
   },
 ];

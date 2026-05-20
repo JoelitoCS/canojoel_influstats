@@ -15,12 +15,29 @@ const getToken   = () => localStorage.getItem("token");
 const serverSnap = () => null;
 
 // ─── Configuración de plataformas ────────────────────────────────────────────
+// TikTok tiene branding especial: negro en claro, blanco en oscuro.
+// El resto usa su color de marca normal.
 const PLATFORMS = [
-  { key: "instagram", label: "Instagram", color: "var(--color-instagram)" },
-  { key: "tiktok",    label: "TikTok",    color: "var(--color-tiktok)"    },
-  { key: "youtube",   label: "YouTube",   color: "var(--color-youtube)"   },
-  { key: "twitch",    label: "Twitch",    color: "var(--color-twitch)"    },
+  { key: "instagram", label: "Instagram", color: "var(--color-instagram)", textColor: "white" },
+  { key: "tiktok",    label: "TikTok",    color: null,                     textColor: null    }, // especial
+  { key: "youtube",   label: "YouTube",   color: "var(--color-youtube)",   textColor: "white" },
+  { key: "twitch",    label: "Twitch",    color: "var(--color-twitch)",    textColor: "white" },
 ];
+
+// Devuelve los colores reales de TikTok según el tema activo del documento.
+function getTikTokStyle() {
+  if (typeof document === "undefined") return { bg: "#000", text: "#fff", icon: "#fff" };
+  const isDark = document.documentElement.dataset.theme === "dark";
+  return isDark
+    ? { bg: "#ffffff", text: "#000000", icon: "#000000" }  // oscuro → botón blanco
+    : { bg: "#000000", text: "#ffffff", icon: "#ffffff" }; // claro  → botón negro
+}
+
+// Resuelve el color efectivo de una plataforma (con soporte TikTok especial).
+function getPlatformColor(key, tiktokStyle) {
+  if (key === "tiktok") return tiktokStyle.bg;
+  return PLATFORMS.find((p) => p.key === key)?.color ?? "var(--color-accent)";
+}
 
 // Criterios de ordenación disponibles
 const SORTS = [
@@ -147,6 +164,17 @@ export default function RankingsPage() {
   const [ranking,  setRanking]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState("");
+  const [theme,    setTheme]    = useState("dark"); // para detectar cambios de tema
+
+  // Sincronizar tema con el atributo del documento
+  useEffect(() => {
+    const update = () => setTheme(document.documentElement.dataset.theme || "dark");
+    update();
+    window.addEventListener("themechange", update);
+    return () => window.removeEventListener("themechange", update);
+  }, []);
+
+  const tiktokStyle = getTikTokStyle();
 
   // Protección de ruta
   useEffect(() => {
@@ -174,7 +202,12 @@ export default function RankingsPage() {
 
   if (token === null) return null;
 
-  const meta = PLATFORMS.find((p) => p.key === platform);
+  const meta      = PLATFORMS.find((p) => p.key === platform);
+  const isTikTok  = platform === "tiktok";
+  // Color efectivo del panel/tabs para la plataforma activa
+  const activeColor     = isTikTok ? tiktokStyle.bg   : meta.color;
+  const activeTextColor = isTikTok ? tiktokStyle.text : "white";
+  const activeIconColor = isTikTok ? tiktokStyle.icon : "white";
 
   return (
     <AppShell>
@@ -192,26 +225,38 @@ export default function RankingsPage() {
 
         {/* ── Tabs de plataforma ───────────────────────────────────────── */}
         <div className="flex flex-wrap gap-2">
-          {PLATFORMS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => { setPlatform(p.key); setSort("followers"); }}
-              className={[
-                "flex items-center gap-2 rounded-[var(--radius-md)] border px-4 py-2 text-sm font-semibold transition-all duration-200",
-                platform === p.key
-                  ? "border-transparent text-white shadow-md"
-                  : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]",
-              ].join(" ")}
-              style={platform === p.key ? { background: p.color } : {}}
-            >
-              <PlatformIcon
-                platform={p.key}
-                size={16}
-                color={platform === p.key ? "white" : p.color}
-              />
-              {p.label}
-            </button>
-          ))}
+          {PLATFORMS.map((p) => {
+            const isActive  = platform === p.key;
+            const isTT      = p.key === "tiktok";
+            const btnBg     = isTT ? tiktokStyle.bg   : p.color;
+            const btnText   = isTT ? tiktokStyle.text : "white";
+            const btnIcon   = isTT ? tiktokStyle.icon : "white";
+            const inactiveIconColor = isTT ? (theme === "dark" ? "#ffffff" : "#000000") : p.color;
+
+            return (
+              <button
+                key={p.key}
+                onClick={() => { setPlatform(p.key); setSort("followers"); }}
+                className={[
+                  "flex items-center gap-2 rounded-[var(--radius-md)] border px-4 py-2 text-sm font-semibold transition-all duration-200",
+                  isActive
+                    ? "border-transparent shadow-md"
+                    : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-text)]",
+                ].join(" ")}
+                style={isActive
+                  ? { background: btnBg, color: btnText }
+                  : {}
+                }
+              >
+                <PlatformIcon
+                  platform={p.key}
+                  size={16}
+                  color={isActive ? btnIcon : inactiveIconColor}
+                />
+                {p.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── Panel principal ──────────────────────────────────────────── */}

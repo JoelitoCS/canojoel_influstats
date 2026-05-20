@@ -83,58 +83,69 @@
   --sidebar-collapsed: 72px;
 }
 
-/* ── TEMA OSCURO ── Base profunda con acentos neón contenidos */
+/* ── TEMA OSCURO ── Azul marino profundo estilo social-media dashboard */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-bg: #0c0a14;
-  --color-bg-soft: #110e1c;
-  --color-bg-deep: #080612;
+  /* Fondo general — azul marino muy oscuro, no negro puro */
+  --color-bg:       #0d1117;
+  --color-bg-soft:  #111620;
+  --color-bg-deep:  #090d13;
 
-  --color-surface: rgba(22, 18, 36, 0.72);
-  --color-surface-strong: #1a1530;
-  --color-surface-hover: rgba(30, 24, 50, 0.85);
+  /* Superficies — azul pizarra con diferencia clara entre capas */
+  --color-surface:        rgba(22, 30, 46, 0.85);
+  --color-surface-strong: #1c2537;
+  --color-surface-hover:  rgba(30, 42, 62, 0.92);
 
-  --color-sidebar: #0f0c1a;
-  --color-sidebar-soft: #161226;
-  --color-sidebar-text: #7a7194;
-  --color-sidebar-text-active: #f0ecf8;
-  --color-sidebar-accent: rgba(255, 107, 129, 0.1);
-  --color-sidebar-border: rgba(255, 255, 255, 0.04);
+  /* Sidebar — tono más oscuro que la superficie, con borde sutil */
+  --color-sidebar:             #0f1623;
+  --color-sidebar-soft:        #141d2e;
+  --color-sidebar-text:        #7a8ba8;
+  --color-sidebar-text-active: #e8edf5;
+  --color-sidebar-accent:      rgba(99, 179, 237, 0.1);
+  --color-sidebar-border:      rgba(255, 255, 255, 0.05);
 
-  --color-topbar: rgba(14, 11, 22, 0.85);
+  /* Top bar */
+  --color-topbar: rgba(13, 17, 23, 0.88);
 
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-strong: rgba(255, 255, 255, 0.1);
+  /* Bordes — más visibles para separar secciones */
+  --color-border:        rgba(99, 130, 180, 0.15);
+  --color-border-strong: rgba(99, 130, 180, 0.28);
 
-  --color-text: #f0ecf8;
-  --color-text-secondary: #9b93b0;
-  --color-muted: #6b6280;
+  /* Texto — blanco cálido con jerarquía clara */
+  --color-text:           #e8edf5;
+  --color-text-secondary: #94a3b8;
+  --color-muted:          #546880;
 
-  --color-accent: #ff6b81;
-  --color-accent-dim: #ff8fa0;
-  --color-accent-soft: rgba(255, 107, 129, 0.12);
-  --color-accent-glow: rgba(255, 107, 129, 0.25);
+  /* Acento principal — rosa coral (relacionado con Instagram/TikTok) */
+  --color-accent:      #f472b6;
+  --color-accent-dim:  #ec4899;
+  --color-accent-soft: rgba(244, 114, 182, 0.13);
+  --color-accent-glow: rgba(244, 114, 182, 0.22);
 
-  --color-secondary: #a78bfa;
-  --color-secondary-soft: rgba(167, 139, 250, 0.12);
+  /* Secundario — azul cián (relacionado con TikTok/Twitter) */
+  --color-secondary:      #38bdf8;
+  --color-secondary-soft: rgba(56, 189, 248, 0.12);
 
-  --color-error: #f87171;
-  --color-error-soft: rgba(248, 113, 113, 0.12);
-  --color-success: #34d399;
-  --color-success-soft: rgba(52, 211, 153, 0.12);
-  --color-warning: #fbbf24;
-  --color-warning-soft: rgba(251, 191, 36, 0.12);
+  /* Estados */
+  --color-error:        #f87171;
+  --color-error-soft:   rgba(248, 113, 113, 0.13);
+  --color-success:      #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.13);
+  --color-warning:      #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, 0.13);
 
-  --color-instagram: #e1306c;
-  --color-tiktok: #00f2ea;
-  --color-youtube: #ff0000;
-  --color-twitch: #9146ff;
+  /* Plataformas */
+  --color-instagram: #f472b6;
+  --color-tiktok:    #2dd4bf;
+  --color-youtube:   #f87171;
+  --color-twitch:    #a78bfa;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 20px 60px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(255, 107, 129, 0.15);
-  --shadow-sidebar: 4px 0 32px rgba(0, 0, 0, 0.4);
+  /* Sombras — con tinte azulado */
+  --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 10, 30, 0.35);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 56px rgba(0, 10, 40, 0.45);
+  --shadow-glow:       0 0 24px rgba(244, 114, 182, 0.18);
+  --shadow-sidebar:    4px 0 32px rgba(0, 0, 0, 0.5);
 }
 
 /* ── RESET & BASE ── */
