@@ -68,6 +68,9 @@ export const metricsApi = {
 
   // Resumen global de metricas actuales del usuario -> GET /api/metrics/summary
   getSummary: () => apiFetch('/api/metrics/summary'),
+
+  // Comparativa actual vs semana anterior -> GET /api/metrics/compare/:profileId?period=1w
+  compare: (profileId) => apiFetch(`/api/metrics/compare/${profileId}?period=1w`),
 };
 
 // Endpoints de ranking publico (requiere autenticacion).
