@@ -23,28 +23,24 @@ export default function InstagramPage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profile, setProfile]   = useState(undefined); // undefined = cargando, null = no tiene
+  const [profiles, setProfiles] = useState(undefined); // undefined=cargando, []=sin perfiles
+  const [selectedId, setSelectedId] = useState(null);
   const [history, setHistory]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [period, setPeriod]     = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
-  // Busca el perfil de Instagram del usuario y carga su historial.
   const init = useCallback(async () => {
     try {
       setLoading(true);
       const data = await profilesApi.getAll();
       const list = Array.isArray(data) ? data : data?.profiles || [];
-      // Filtramos por plataforma instagram.
-      const ig   = list.find((p) => p.platform?.toLowerCase() === "instagram") || null;
-      setProfile(ig);
-      if (ig) {
-        const m = await metricsApi.getAll(ig.id);
-        setHistory(m?.metrics || []);
-      }
+      const igs  = list.filter((p) => p.platform?.toLowerCase() === "instagram");
+      setProfiles(igs);
+      if (igs.length > 0) setSelectedId(igs[0].id);
     } catch {
-      setProfile(null);
+      setProfiles([]);
     } finally {
       setLoading(false);
     }
@@ -52,13 +48,25 @@ export default function InstagramPage() {
 
   useEffect(() => { if (token) init(); }, [token, init]);
 
+  // Carga métricas cuando cambia el perfil seleccionado
+  useEffect(() => {
+    if (!selectedId) return;
+    setLoading(true);
+    metricsApi.getAll(selectedId)
+      .then((m) => setHistory(m?.metrics || []))
+      .catch(() => setHistory([]))
+      .finally(() => setLoading(false));
+  }, [selectedId]);
+
   if (token === null) return null;
 
   return (
     <AppShell>
       <PlatformPage
         platform="instagram"
-        profile={profile === undefined ? null : profile}
+        profiles={profiles === undefined ? [] : profiles}
+        selectedId={selectedId}
+        onSelectProfile={setSelectedId}
         history={history}
         period={period}
         onPeriod={setPeriod}

@@ -381,11 +381,28 @@ export default function ComparePage() {
                 </div>
               </div>
 
-              {!canCompare && (
-                <span className="rounded-full border border-[var(--color-warning)]/40 bg-[var(--color-warning-soft)] px-3 py-1 text-xs font-semibold text-[var(--color-warning)]">
-                  ⚠ Sin datos para este período
-                </span>
-              )}
+              <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-400">
+                  <svg className="mt-0.5 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+                  </svg>
+                  <span>
+                    {canCompare ? (
+                      <>Comparando con el registro más cercano a{" "}
+                        <strong className="text-blue-300">{fmtDate(compareData.referenceDate)}</strong>
+                        {" "}({periodLabel} atrás). Si quieres una comparativa más precisa, añade las estadísticas
+                        de esa fecha exacta desde{" "}
+                        <a href="/dashboard/metrics" className="underline underline-offset-2 font-semibold hover:text-blue-200 transition-colors">Estadísticas</a>.
+                      </>
+                    ) : (
+                      <>No hay ningún registro cercano a{" "}
+                        <strong className="text-blue-300">{fmtDate(compareData.referenceDate)}</strong>
+                        {" "}({periodLabel} atrás). Para poder comparar este período, añade las estadísticas
+                        correspondientes a esa fecha desde{" "}
+                        <a href="/dashboard/metrics" className="underline underline-offset-2 font-semibold hover:text-blue-200 transition-colors">Estadísticas</a>.
+                      </>
+                    )}
+                  </span>
+                </div>
             </div>
           </Card>
         )}

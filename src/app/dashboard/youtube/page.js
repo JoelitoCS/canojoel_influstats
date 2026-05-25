@@ -7,10 +7,10 @@ import PlatformPage from "@/components/ui/PlatformPage";
 import { profilesApi, metricsApi } from "@/lib/api";
 
 const CHART_FIELDS = [
-  { key: "subscribers", label: "Suscriptores"      },
-  { key: "views",       label: "Visitas"            },
-  { key: "likes",       label: "Likes"              },
-  { key: "paidMembers", label: "Miembros de pago"   },
+  { key: "subscribers", label: "Suscriptores"    },
+  { key: "views",       label: "Visitas"          },
+  { key: "likes",       label: "Likes"            },
+  { key: "paidMembers", label: "Miembros de pago" },
 ];
 
 const subscribeStorage = (cb) => { window.addEventListener("storage", cb); return () => window.removeEventListener("storage", cb); };
@@ -21,10 +21,11 @@ export default function YoutubePage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profile, setProfile] = useState(undefined);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [period,  setPeriod]  = useState("month");
+  const [profiles,    setProfiles]    = useState(undefined);
+  const [selectedId,  setSelectedId]  = useState(null);
+  const [history,     setHistory]     = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [period,      setPeriod]      = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
@@ -33,14 +34,11 @@ export default function YoutubePage() {
       setLoading(true);
       const data = await profilesApi.getAll();
       const list = Array.isArray(data) ? data : data?.profiles || [];
-      const yt   = list.find((p) => p.platform?.toLowerCase() === "youtube") || null;
-      setProfile(yt);
-      if (yt) {
-        const m = await metricsApi.getAll(yt.id);
-        setHistory(m?.metrics || []);
-      }
+      const yts  = list.filter((p) => p.platform?.toLowerCase() === "youtube");
+      setProfiles(yts);
+      if (yts.length > 0) setSelectedId(yts[0].id);
     } catch {
-      setProfile(null);
+      setProfiles([]);
     } finally {
       setLoading(false);
     }
@@ -48,13 +46,24 @@ export default function YoutubePage() {
 
   useEffect(() => { if (token) init(); }, [token, init]);
 
+  useEffect(() => {
+    if (!selectedId) return;
+    setLoading(true);
+    metricsApi.getAll(selectedId)
+      .then((m) => setHistory(m?.metrics || []))
+      .catch(() => setHistory([]))
+      .finally(() => setLoading(false));
+  }, [selectedId]);
+
   if (token === null) return null;
 
   return (
     <AppShell>
       <PlatformPage
         platform="youtube"
-        profile={profile === undefined ? null : profile}
+        profiles={profiles === undefined ? [] : profiles}
+        selectedId={selectedId}
+        onSelectProfile={setSelectedId}
         history={history}
         period={period}
         onPeriod={setPeriod}

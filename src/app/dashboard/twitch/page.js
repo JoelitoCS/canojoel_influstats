@@ -7,10 +7,10 @@ import PlatformPage from "@/components/ui/PlatformPage";
 import { profilesApi, metricsApi } from "@/lib/api";
 
 const CHART_FIELDS = [
-  { key: "followers",         label: "Seguidores"              },
-  { key: "views",             label: "Visualizaciones"         },
-  { key: "subscribersTwitch", label: "Suscriptores"            },
-  { key: "bits",              label: "Bits donados"            },
+  { key: "followers",         label: "Seguidores"      },
+  { key: "views",             label: "Visualizaciones" },
+  { key: "subscribersTwitch", label: "Suscriptores"    },
+  { key: "bits",              label: "Bits donados"    },
 ];
 
 const subscribeStorage = (cb) => { window.addEventListener("storage", cb); return () => window.removeEventListener("storage", cb); };
@@ -21,10 +21,11 @@ export default function TwitchPage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profile, setProfile] = useState(undefined);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [period,  setPeriod]  = useState("month");
+  const [profiles,    setProfiles]    = useState(undefined);
+  const [selectedId,  setSelectedId]  = useState(null);
+  const [history,     setHistory]     = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [period,      setPeriod]      = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
@@ -33,14 +34,11 @@ export default function TwitchPage() {
       setLoading(true);
       const data = await profilesApi.getAll();
       const list = Array.isArray(data) ? data : data?.profiles || [];
-      const tw   = list.find((p) => p.platform?.toLowerCase() === "twitch") || null;
-      setProfile(tw);
-      if (tw) {
-        const m = await metricsApi.getAll(tw.id);
-        setHistory(m?.metrics || []);
-      }
+      const tws  = list.filter((p) => p.platform?.toLowerCase() === "twitch");
+      setProfiles(tws);
+      if (tws.length > 0) setSelectedId(tws[0].id);
     } catch {
-      setProfile(null);
+      setProfiles([]);
     } finally {
       setLoading(false);
     }
@@ -48,13 +46,24 @@ export default function TwitchPage() {
 
   useEffect(() => { if (token) init(); }, [token, init]);
 
+  useEffect(() => {
+    if (!selectedId) return;
+    setLoading(true);
+    metricsApi.getAll(selectedId)
+      .then((m) => setHistory(m?.metrics || []))
+      .catch(() => setHistory([]))
+      .finally(() => setLoading(false));
+  }, [selectedId]);
+
   if (token === null) return null;
 
   return (
     <AppShell>
       <PlatformPage
         platform="twitch"
-        profile={profile === undefined ? null : profile}
+        profiles={profiles === undefined ? [] : profiles}
+        selectedId={selectedId}
+        onSelectProfile={setSelectedId}
         history={history}
         period={period}
         onPeriod={setPeriod}
