@@ -135,10 +135,50 @@ function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Hook: dispara cuando el elemento entra en el viewport (IntersectionObserver)
+// ─────────────────────────────────────────────────────────────────────────────
+function useInView(options = {}) {
+  const ref     = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); obs.disconnect(); }
+    }, { threshold: 0.15, ...options });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Wrapper animado para cualquier gráfico — fade + slide-up al entrar en vista
+// ─────────────────────────────────────────────────────────────────────────────
+function ChartWrapper({ children, delay = 0 }) {
+  const [ref, inView] = useInView();
+  return (
+    <div ref={ref} style={{
+      opacity:    inView ? 1 : 0,
+      transform:  inView ? "none" : "translateY(24px)",
+      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Sección de gráficos con Recharts
 // ─────────────────────────────────────────────────────────────────────────────
 function ChartsSection({ data, chartFields, color, platform }) {
   const [activeTab, setActiveTab] = useState("metrics");
+  const [animKey, setAnimKey]     = useState(0);
+
+  const handleTab = (id) => {
+    setActiveTab(id);
+    setAnimKey((k) => k + 1); // fuerza remount del gráfico → re-anima
+  };
 
   // Preparar datos cronológicos para Recharts (más antiguo → más reciente)
   const chartData = useMemo(
@@ -164,7 +204,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
           ].map((t) => (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => handleTab(t.id)}
               className={["rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-semibold transition-all duration-150", activeTab === t.id ? "text-white shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
               style={activeTab === t.id ? { background: color } : {}}
             >
@@ -177,7 +217,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
       {/* ── Tab Métricas: AreaChart multi-línea ── */}
       {activeTab === "metrics" && (
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart key={animKey} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               {chartFields.map((f, i) => (
                 <linearGradient key={f.key} id={`${gradId}-${f.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -217,7 +257,8 @@ function ChartsSection({ data, chartFields, color, platform }) {
                 fill={`url(#${gradId}-${f.key})`}
                 dot={false}
                 activeDot={{ r: 5, fill: color, stroke: "var(--color-surface)", strokeWidth: 2 }}
-                animationDuration={1000}
+                animationBegin={0}
+                animationDuration={1200}
                 animationEasing="ease-out"
               />
             ))}
@@ -228,7 +269,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
       {/* ── Tab Engagement ── */}
       {activeTab === "engagement" && (
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart key={animKey} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`${gradId}-eng`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="var(--color-secondary)" stopOpacity={0.3} />
@@ -258,7 +299,8 @@ function ChartsSection({ data, chartFields, color, platform }) {
               fill={`url(#${gradId}-eng)`}
               dot={{ r: 3, fill: "var(--color-secondary)", stroke: "var(--color-surface)", strokeWidth: 2 }}
               activeDot={{ r: 6 }}
-              animationDuration={1000}
+              animationBegin={0}
+              animationDuration={1200}
               animationEasing="ease-out"
             />
           </AreaChart>
@@ -273,8 +315,8 @@ function ChartsSection({ data, chartFields, color, platform }) {
         if (!growthData.length)
           return <p className="py-10 text-center text-sm text-[var(--color-muted)]">Necesitas al menos 2 semanas para ver el crecimiento.</p>;
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={growthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <ResponsiveContainer key={animKey} width="100%" height={300}>
+            <LineChart key={animKey} data={growthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis
                 dataKey="_date"
@@ -311,11 +353,12 @@ function ChartsSection({ data, chartFields, color, platform }) {
                   );
                 }}
                 activeDot={{ r: 6 }}
-                animationDuration={1000}
+                animationBegin={0}
+                animationDuration={1200}
                 animationEasing="ease-out"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+                />
+                </LineChart>
+                </ResponsiveContainer>
         );
       })()}
 
