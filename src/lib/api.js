@@ -69,6 +69,9 @@ export const metricsApi = {
   // Resumen global de metricas actuales del usuario -> GET /api/metrics/summary
   getSummary: () => apiFetch('/api/metrics/summary'),
 
+  // Perfiles con más de 7 días sin actualizar → GET /api/metrics/staleness
+  getStaleness: () => apiFetch('/api/metrics/staleness'),
+
   // Comparativa actual vs período anterior -> GET /api/metrics/compare/:profileId?period=X[&fromDate=YYYY-MM-DD]
   // period: '1w' | '2w' | '1m' | '3m' | '6m' | '1y' | 'custom'
   // fromDate: solo si period === 'custom' (YYYY-MM-DD)

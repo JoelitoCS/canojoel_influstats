@@ -52,6 +52,9 @@ const fmtShort = (n) => {
   return v.toLocaleString("es-ES");
 };
 
+// ── Clamp a mínimo 0 — los porcentajes no pueden ser negativos por datos incorrectos ──
+const clampPct = (v) => Math.max(parseFloat(v) || 0, 0);
+
 // ── Tooltip personalizado ─────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -66,7 +69,7 @@ function CustomTooltip({ active, payload, label }) {
           <span className="text-[var(--color-muted)]">{p.name}:</span>
           <span className="font-bold text-[var(--color-text)]">
             {typeof p.value === "number" && (p.dataKey === "engagement" || p.dataKey === "growth")
-              ? `${p.value.toFixed(2)} %`
+              ? `${clampPct(p.value).toFixed(2)} %`
               : fmtShort(p.value)}
           </span>
         </div>
@@ -431,17 +434,48 @@ export default function PlatformPage({
         </div>
       ) : latest ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {chartFields.map(({ key, label }, idx) => (
-            <div key={key}
-              className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
-              style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
-              <p className="mt-2 text-2xl font-bold text-[var(--color-text)]">
-                <AnimatedNumber value={latest[key] ?? 0} />
-              </p>
-              {key === growthField && <div className="mt-2"><GrowthBadge value={latest.growth} /></div>}
-            </div>
-          ))}
+          {chartFields.map(({ key, label }, idx) => {
+            // Primer registro del período (el más antiguo dentro del filtro)
+            const oldest  = filtered[filtered.length - 1];
+            const curr    = latest[key]  != null ? Number(latest[key])  : null;
+            const prev    = oldest && oldest.id !== latest.id && oldest[key] != null ? Number(oldest[key]) : null;
+            const delta   = curr !== null && prev !== null ? curr - prev : null;
+            const pct     = delta !== null && prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
+            const positive = delta !== null && delta >= 0;
+
+            return (
+              <div key={key}
+                className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+                style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
+                <p className="mt-2 text-2xl font-bold text-[var(--color-text)]">
+                  <AnimatedNumber value={curr ?? 0} />
+                </p>
+
+                {/* Delta respecto al inicio del período */}
+                {delta !== null ? (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                      positive
+                        ? "bg-[var(--color-success-soft)] text-[var(--color-success)]"
+                        : "bg-[var(--color-error-soft)] text-[var(--color-error)]"
+                    }`}>
+                      {positive
+                        ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 8 L8 2 M3 2 h5 v5"/></svg>
+                        : <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2 L2 8 M7 8 H2 V3"/></svg>
+                      }
+                      {pct !== null ? `${Math.abs(pct).toFixed(1)} %` : fmtShort(Math.abs(delta))}
+                    </span>
+                    <span className="text-[10px] text-[var(--color-muted)]">
+                      vs inicio del período
+                    </span>
+                  </div>
+                ) : (
+                  key === growthField && <div className="mt-2"><GrowthBadge value={latest.growth} /></div>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -493,7 +527,7 @@ export default function PlatformPage({
                       ))}
                       <td className="py-3 pr-4">
                         <span className="rounded-full bg-[var(--color-secondary-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-secondary)]">
-                          {parseFloat(row.engagement ?? 0).toFixed(2)} %
+                          {clampPct(row.engagement ?? 0).toFixed(2)} %
                         </span>
                       </td>
                       <td className="py-3"><GrowthBadge value={row.growth} /></td>

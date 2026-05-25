@@ -386,7 +386,7 @@ export default function AdminPage() {
                               <td className="py-3 pr-4 font-medium text-[var(--color-text)]">{fmtDate(m.weekDate)}</td>
                               <td className="py-3 pr-4">
                                 <span className="rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-accent)]">
-                                  {parseFloat(m.engagement ?? 0).toFixed(2)} %
+                                  {Math.max(parseFloat(m.engagement ?? 0), 0).toFixed(2)} %
                                 </span>
                               </td>
                               <td className="py-3 pr-4">

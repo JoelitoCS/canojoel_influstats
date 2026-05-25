@@ -86,6 +86,9 @@ export default function DashboardPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ── Estado del aviso de actualización pendiente ─────────────────────────────────
+  const [staleProfiles, setStaleProfiles] = useState([]);
+
   // ── Estado del modal de edición ───────────────────────────────────────────
   const [editingProfile, setEditingProfile] = useState(null);
   const [editForm, setEditForm]             = useState({ ...emptyForm });
@@ -114,6 +117,16 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // ── Carga perfiles con más de 7 días sin actualizar ─────────────────────────
+  const fetchStaleness = useCallback(async () => {
+    try {
+      const data = await metricsApi.getStaleness();
+      setStaleProfiles(data?.stale ?? []);
+    } catch {
+      setStaleProfiles([]);
+    }
+  }, []);
+
   // ── Carga los perfiles del usuario ────────────────────────────────────────
   const fetchProfiles = useCallback(async () => {
     try {
@@ -132,8 +145,9 @@ export default function DashboardPage() {
     if (token) {
       fetchProfiles();
       fetchSummary();
+      fetchStaleness();
     }
-  }, [token, fetchProfiles, fetchSummary]);
+  }, [token, fetchProfiles, fetchSummary, fetchStaleness]);
 
   // ── Definición de las metric cards con datos reales ───────────────────────
   // El número de perfiles proviene de profiles.length (siempre disponible);
@@ -306,6 +320,55 @@ export default function DashboardPage() {
             />
           ))}
         </div>
+
+        {/* ── Banner de aviso: perfiles sin actualizar hace más de 7 días ──────── */}
+        {staleProfiles.length > 0 && (
+          <div className="rounded-[var(--radius-lg)] border border-amber-500/30 bg-amber-500/10 px-5 py-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-amber-500/20 text-amber-400">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-amber-300">
+                    {staleProfiles.length === 1
+                      ? "1 perfil lleva más de 7 días sin actualizarse"
+                      : `${staleProfiles.length} perfiles llevan más de 7 días sin actualizarse`}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {staleProfiles.map((p) => (
+                      <span
+                        key={p.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        @{p.username}
+                        <span className="text-amber-500/70">·</span>
+                        <span className="text-amber-400/70">{p.platform}</span>
+                        {p.daysAgo !== null && (
+                          <span className="text-amber-500/60">· hace {p.daysAgo}d</span>
+                        )}
+                        {p.daysAgo === null && (
+                          <span className="text-amber-500/60">· sin datos</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/dashboard/metrics"
+                className="shrink-0 rounded-[var(--radius-md)] bg-amber-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-amber-400 active:scale-95"
+              >
+                Actualizar ahora
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* ── Resumen visual por plataforma (Historia 16 — visual summary) */}
         {!loadingSummary && summary && summary.totalFollowers > 0 && (
