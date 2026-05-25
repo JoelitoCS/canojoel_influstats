@@ -69,11 +69,17 @@ export const metricsApi = {
   // Resumen global de metricas actuales del usuario -> GET /api/metrics/summary
   getSummary: () => apiFetch('/api/metrics/summary'),
 
-  // Comparativa actual vs semana anterior -> GET /api/metrics/compare/:profileId?period=1w
-  compare: (profileId) => apiFetch(`/api/metrics/compare/${profileId}?period=1w`),
+  // Comparativa actual vs período anterior -> GET /api/metrics/compare/:profileId?period=X[&fromDate=YYYY-MM-DD]
+  // period: '1w' | '2w' | '1m' | '3m' | '6m' | '1y' | 'custom'
+  // fromDate: solo si period === 'custom' (YYYY-MM-DD)
+  compare: (profileId, period = '1w', fromDate = null) => {
+    const params = new URLSearchParams({ period });
+    if (fromDate) params.set('fromDate', fromDate);
+    return apiFetch(`/api/metrics/compare/${profileId}?${params.toString()}`);
+  },
 };
 
-// Endpoints de ranking publico (requiere autenticacion).
+// Endpoints de perfiles sociales asociados al usuario autenticado.
 export const rankingApi = {
   // GET /api/ranking?platform=instagram&sort=followers
   get: (platform, sort = 'followers') =>
@@ -104,4 +110,21 @@ export const profilesApi = {
     apiFetch(`/api/profiles/${id}`, {
       method: "DELETE",
     }),
+};
+
+// Endpoints de administración (requiere role='admin').
+export const adminApi = {
+  // Usuarios
+  getUsers:      ()         => apiFetch('/api/admin/users'),
+  deleteUser:    (userId)   => apiFetch(`/api/admin/users/${userId}`,   { method: 'DELETE' }),
+
+  // Perfiles
+  getAllProfiles: ()          => apiFetch('/api/admin/profiles'),
+  deleteProfile: (profileId) => apiFetch(`/api/admin/profiles/${profileId}`, { method: 'DELETE' }),
+
+  // Métricas
+  getMetrics:       (profileId) => apiFetch(`/api/admin/metrics/${profileId}`),
+  updateMetric:     (metricsId, data) => apiFetch(`/api/admin/metrics/${metricsId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteMetric:     (metricsId) => apiFetch(`/api/admin/metrics/${metricsId}`,                  { method: 'DELETE' }),
+  deleteAllMetrics: (profileId) => apiFetch(`/api/admin/metrics/profile/${profileId}/all`,      { method: 'DELETE' }),
 };

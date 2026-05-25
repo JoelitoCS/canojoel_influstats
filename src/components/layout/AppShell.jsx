@@ -93,6 +93,11 @@ const icons = {
       <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   ),
+  admin: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
 };
 
 // Secciones del sidebar con separadores de grupo.
@@ -123,9 +128,10 @@ const subscribeStorage = (cb) => {
   window.addEventListener("storage", cb);
   return () => window.removeEventListener("storage", cb);
 };
-const getToken = () => localStorage.getItem("token");
-const getEmail = () => localStorage.getItem("userEmail") || "Mi cuenta";
-const serverSnap = () => null;
+const getToken   = () => localStorage.getItem("token");
+const getEmail   = () => localStorage.getItem("userEmail") || "Mi cuenta";
+const getRole    = () => localStorage.getItem("userRole")  || "user";
+const serverSnap  = () => null;
 const serverEmail = () => "Mi cuenta";
 
 const getAvatarLetter = (email) => {
@@ -140,6 +146,7 @@ export default function AppShell({ children }) {
   const searchParams = useSearchParams();
   const token = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
   const userEmail = useSyncExternalStore(subscribeStorage, getEmail, serverEmail);
+  const userRole  = useSyncExternalStore(subscribeStorage, getRole, serverSnap);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const avatarLetter = getAvatarLetter(userEmail);
 
@@ -158,8 +165,10 @@ export default function AppShell({ children }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
-    window.dispatchEvent(new StorageEvent("storage", { key: "token", newValue: null }));
+    localStorage.removeItem("userRole");
+    window.dispatchEvent(new StorageEvent("storage", { key: "token",     newValue: null }));
     window.dispatchEvent(new StorageEvent("storage", { key: "userEmail", newValue: null }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "userRole",  newValue: null }));
     router.push("/login");
   };
 
@@ -236,6 +245,40 @@ export default function AppShell({ children }) {
               </div>
             </div>
           ))}
+
+          {/* Enlace admin — solo visible si role='admin' */}
+          {userRole === "admin" && (
+            <div className="mt-6">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">
+                ADMINISTRACIÓN
+              </p>
+              <div className="flex flex-col gap-0.5">
+                {[{ href: "/dashboard/admin", label: "Panel Admin", icon: "admin" }].map((item) => {
+                  const isActive = isItemActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={[
+                        "relative flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium",
+                        "transition-all duration-200",
+                        isActive
+                          ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-text-active)]"
+                          : "hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-text-active)]",
+                      ].join(" ")}
+                    >
+                      {isActive && <span className="nav-active-indicator" />}
+                      <span className={isActive ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"}>
+                        {icons[item.icon]}
+                      </span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Perfil de usuario en la parte inferior */}

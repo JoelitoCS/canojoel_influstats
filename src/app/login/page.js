@@ -42,6 +42,7 @@ export default function LoginPage() {
       const data = await authApi.login(form);
       localStorage.setItem("token", data.token);
       localStorage.setItem("userEmail", data.usuario.email);
+      localStorage.setItem("userRole", data.usuario.role || "user");
       router.push("/dashboard");
     } catch (error) {
       setErrors({ general: error.message });
