@@ -84,9 +84,12 @@ export const metricsApi = {
 
 // Endpoints de perfiles sociales asociados al usuario autenticado.
 export const rankingApi = {
-  // GET /api/ranking?platform=instagram&sort=followers
   get: (platform, sort = 'followers') =>
     apiFetch(`/api/ranking?platform=${platform}&sort=${sort}`),
+
+  // Comparar dos perfiles públicos → GET /api/ranking/compare?profileA=x&profileB=y
+  compareProfiles: (profileA, profileB) =>
+    apiFetch(`/api/ranking/compare?profileA=${profileA}&profileB=${profileB}`),
 };
 
 // Endpoints de perfiles sociales asociados al usuario autenticado.
