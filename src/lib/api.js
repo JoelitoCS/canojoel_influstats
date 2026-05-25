@@ -126,5 +126,5 @@ export const adminApi = {
   getMetrics:       (profileId) => apiFetch(`/api/admin/metrics/${profileId}`),
   updateMetric:     (metricsId, data) => apiFetch(`/api/admin/metrics/${metricsId}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteMetric:     (metricsId) => apiFetch(`/api/admin/metrics/${metricsId}`,                  { method: 'DELETE' }),
-  deleteAllMetrics: (profileId) => apiFetch(`/api/admin/metrics/profile/${profileId}/all`,      { method: 'DELETE' }),
+  deleteAllMetrics: (profileId) => apiFetch(`/api/admin/all-metrics/${profileId}`, { method: 'DELETE' }),
 };
