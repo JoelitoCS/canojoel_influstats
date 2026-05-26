@@ -1,160 +1,142 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   INFLUSTATS — DESIGN SYSTEM
-   Inspirado en dashboards de analítica social con sidebar lateral,
-   paleta oscura profunda con acentos coral/rosa y tema claro gris.
+   INFLUSTATS — DESIGN SYSTEM v2
+   Interfaz limpia, rápida y moderna con microanimaciones fluidas.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── TEMA CLARO ── Gris neutro con profundidad, no blanco plano */
+/* ── TEMA CLARO ── */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Fondos gris muy claro — luminoso pero no blanco puro */
-  --color-bg: #f2f3f5;
-  --color-bg-soft: #f6f7f8;
-  --color-bg-deep: #ebedf0;
+  --color-bg:           #f0f2f5;
+  --color-bg-soft:      #f6f7f9;
+  --color-bg-deep:      #e8eaee;
 
-  /* Superficies claras con glassmorphism sutil */
-  --color-surface: rgba(255, 255, 255, 0.7);
-  --color-surface-strong: #fafafa;
-  --color-surface-hover: rgba(255, 255, 255, 0.88);
+  --color-surface:        rgba(255, 255, 255, 0.82);
+  --color-surface-strong: #ffffff;
+  --color-surface-hover:  rgba(255, 255, 255, 0.95);
 
-  /* Sidebar en modo claro — gris claro coherente con el fondo */
-  --color-sidebar: #e4e5ea;
-  --color-sidebar-soft: #dcdde3;
-  --color-sidebar-text: #6b6e7f;
-  --color-sidebar-text-active: #1a1c24;
-  --color-sidebar-accent: rgba(255, 107, 129, 0.1);
-  --color-sidebar-border: rgba(0, 0, 0, 0.06);
+  --color-sidebar:             #ffffff;
+  --color-sidebar-soft:        #f8f9fb;
+  --color-sidebar-text:        #72778a;
+  --color-sidebar-text-active: #111318;
+  --color-sidebar-accent:      rgba(99, 91, 255, 0.08);
+  --color-sidebar-border:      rgba(0, 0, 0, 0.07);
 
-  /* Top bar en modo claro */
-  --color-topbar: rgba(242, 243, 245, 0.85);
+  --color-topbar: rgba(240, 242, 245, 0.9);
 
-  /* Bordes y separadores */
-  --color-border: rgba(50, 52, 66, 0.12);
-  --color-border-strong: rgba(50, 52, 66, 0.2);
+  --color-border:        rgba(40, 44, 60, 0.10);
+  --color-border-strong: rgba(40, 44, 60, 0.18);
 
-  /* Texto */
-  --color-text: #1a1c24;
-  --color-text-secondary: #5c5f6e;
-  --color-muted: #82859a;
+  --color-text:           #111318;
+  --color-text-secondary: #545868;
+  --color-muted:          #8a8fa4;
 
-  /* Acentos — coral/rosa cálido */
-  --color-accent: #ff6b81;
-  --color-accent-dim: #e8556e;
-  --color-accent-soft: rgba(255, 107, 129, 0.1);
-  --color-accent-glow: rgba(255, 107, 129, 0.2);
+  --color-accent:      #635bff;
+  --color-accent-dim:  #4f46e5;
+  --color-accent-soft: rgba(99, 91, 255, 0.09);
+  --color-accent-glow: rgba(99, 91, 255, 0.22);
 
-  /* Secundario — púrpura suave */
-  --color-secondary: #8b5cf6;
-  --color-secondary-soft: rgba(139, 92, 246, 0.1);
+  --color-secondary:      #06b6d4;
+  --color-secondary-soft: rgba(6, 182, 212, 0.10);
 
-  /* Estados */
-  --color-error: #ef4444;
-  --color-error-soft: rgba(239, 68, 68, 0.1);
-  --color-success: #10b981;
-  --color-success-soft: rgba(16, 185, 129, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.1);
+  --color-error:        #ef4444;
+  --color-error-soft:   rgba(239, 68, 68, 0.08);
+  --color-success:      #10b981;
+  --color-success-soft: rgba(16, 185, 129, 0.09);
+  --color-warning:      #f59e0b;
+  --color-warning-soft: rgba(245, 158, 11, 0.09);
 
-  /* Plataformas */
   --color-instagram: #e1306c;
-  --color-tiktok: #00f2ea;
-  --color-youtube: #ff0000;
-  --color-twitch: #9146ff;
+  --color-tiktok:    #00c2b8;
+  --color-youtube:   #ff2222;
+  --color-twitch:    #7c3aed;
 
-  /* Sombras */
-  --shadow-card: 0 1px 3px rgba(30, 32, 44, 0.05), 0 8px 28px rgba(30, 32, 44, 0.06);
-  --shadow-card-hover: 0 4px 12px rgba(30, 32, 44, 0.08), 0 16px 44px rgba(30, 32, 44, 0.09);
-  --shadow-glow: 0 0 0 rgba(255, 107, 129, 0);
-  --shadow-sidebar: 4px 0 20px rgba(30, 32, 40, 0.1);
+  --shadow-card:       0 1px 2px rgba(20, 22, 40, 0.04), 0 6px 24px rgba(20, 22, 40, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(20, 22, 40, 0.08), 0 20px 48px rgba(20, 22, 40, 0.10);
+  --shadow-glow:       0 0 0 rgba(99, 91, 255, 0);
+  --shadow-sidebar:    2px 0 16px rgba(20, 22, 40, 0.08);
 
-  /* Radios */
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-xl: 24px;
 
-  /* Sidebar */
-  --sidebar-width: 260px;
-  --sidebar-collapsed: 72px;
+  --sidebar-width:    256px;
+  --sidebar-collapsed: 68px;
+
+  --transition-base:  150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:  280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring:320ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── TEMA OSCURO ── Azul marino profundo estilo social-media dashboard */
+/* ── TEMA OSCURO ── */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Fondo general — azul marino muy oscuro, no negro puro */
-  --color-bg:       #0d1117;
-  --color-bg-soft:  #111620;
-  --color-bg-deep:  #090d13;
+  --color-bg:           #0a0c12;
+  --color-bg-soft:      #0e1018;
+  --color-bg-deep:      #06080e;
 
-  /* Superficies — azul pizarra con diferencia clara entre capas */
-  --color-surface:        rgba(22, 30, 46, 0.85);
-  --color-surface-strong: #1c2537;
-  --color-surface-hover:  rgba(30, 42, 62, 0.92);
+  --color-surface:        rgba(18, 21, 32, 0.88);
+  --color-surface-strong: #141824;
+  --color-surface-hover:  rgba(26, 30, 46, 0.94);
 
-  /* Sidebar — tono más oscuro que la superficie, con borde sutil */
-  --color-sidebar:             #0f1623;
-  --color-sidebar-soft:        #141d2e;
-  --color-sidebar-text:        #7a8ba8;
-  --color-sidebar-text-active: #e8edf5;
-  --color-sidebar-accent:      rgba(99, 179, 237, 0.1);
+  --color-sidebar:             #0d0f1a;
+  --color-sidebar-soft:        #111425;
+  --color-sidebar-text:        #6b7599;
+  --color-sidebar-text-active: #e4e8f4;
+  --color-sidebar-accent:      rgba(99, 91, 255, 0.12);
   --color-sidebar-border:      rgba(255, 255, 255, 0.05);
 
-  /* Top bar */
-  --color-topbar: rgba(13, 17, 23, 0.88);
+  --color-topbar: rgba(10, 12, 18, 0.92);
 
-  /* Bordes — más visibles para separar secciones */
-  --color-border:        rgba(99, 130, 180, 0.15);
-  --color-border-strong: rgba(99, 130, 180, 0.28);
+  --color-border:        rgba(120, 130, 180, 0.12);
+  --color-border-strong: rgba(120, 130, 180, 0.22);
 
-  /* Texto — blanco cálido con jerarquía clara */
-  --color-text:           #e8edf5;
-  --color-text-secondary: #94a3b8;
-  --color-muted:          #546880;
+  --color-text:           #e4e8f4;
+  --color-text-secondary: #8892b0;
+  --color-muted:          #4a5280;
 
-  /* Acento principal — rosa coral (relacionado con Instagram/TikTok) */
-  --color-accent:      #f472b6;
-  --color-accent-dim:  #ec4899;
-  --color-accent-soft: rgba(244, 114, 182, 0.13);
-  --color-accent-glow: rgba(244, 114, 182, 0.22);
+  --color-accent:      #7c73ff;
+  --color-accent-dim:  #635bff;
+  --color-accent-soft: rgba(124, 115, 255, 0.14);
+  --color-accent-glow: rgba(124, 115, 255, 0.28);
 
-  /* Secundario — azul cián (relacionado con TikTok/Twitter) */
-  --color-secondary:      #38bdf8;
-  --color-secondary-soft: rgba(56, 189, 248, 0.12);
+  --color-secondary:      #22d3ee;
+  --color-secondary-soft: rgba(34, 211, 238, 0.12);
 
-  /* Estados */
   --color-error:        #f87171;
-  --color-error-soft:   rgba(248, 113, 113, 0.13);
+  --color-error-soft:   rgba(248, 113, 113, 0.12);
   --color-success:      #34d399;
-  --color-success-soft: rgba(52, 211, 153, 0.13);
+  --color-success-soft: rgba(52, 211, 153, 0.12);
   --color-warning:      #fbbf24;
-  --color-warning-soft: rgba(251, 191, 36, 0.13);
+  --color-warning-soft: rgba(251, 191, 36, 0.12);
 
-  /* Plataformas */
   --color-instagram: #f472b6;
   --color-tiktok:    #2dd4bf;
   --color-youtube:   #f87171;
   --color-twitch:    #a78bfa;
 
-  /* Sombras — con tinte azulado */
-  --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 10, 30, 0.35);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 20px 56px rgba(0, 10, 40, 0.45);
-  --shadow-glow:       0 0 24px rgba(244, 114, 182, 0.18);
+  --shadow-card:       0 1px 4px rgba(0, 0, 0, 0.32), 0 8px 32px rgba(0, 4, 24, 0.38);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.44), 0 24px 60px rgba(0, 4, 32, 0.48);
+  --shadow-glow:       0 0 28px rgba(124, 115, 255, 0.22);
   --shadow-sidebar:    4px 0 32px rgba(0, 0, 0, 0.5);
 }
 
 /* ── RESET & BASE ── */
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
   min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -162,7 +144,9 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
-  transition: background-color 280ms ease, color 280ms ease;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 a {
@@ -177,53 +161,105 @@ a {
 
 /* Scrollbar minimalista */
 * {
-  scrollbar-color: var(--color-accent) transparent;
+  scrollbar-color: var(--color-border-strong) transparent;
   scrollbar-width: thin;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   INPUTS — elimina el outline/ring nativo del browser al 100%.
+   El foco visual lo gestiona el <div> wrapper en Input.jsx.
+   ───────────────────────────────────────────────────────────── */
+input,
+input:focus,
+input:focus-visible,
+input:focus-within,
+textarea,
+textarea:focus,
+textarea:focus-visible,
+select,
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+}
+
 /* ── KEYFRAMES ── */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-16px); }
+  from { opacity: 0; transform: translateX(-14px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -300% 0; }
+  100% { background-position: 300% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bar-fill {
+  from { width: 0%; }
+}
+
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.4; }
+  to   { transform: scale(4); opacity: 0; }
 }
 
 /* ── UTILIDADES DE ANIMACIÓN ── */
 .animate-fade-in,
 .animate-fade-in-up {
-  animation: fade-in 0.35s ease-out;
+  animation: fade-up 0.38s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .animate-scale-in {
-  animation: scale-in 0.2s ease-out;
+  animation: scale-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .animate-slide-in {
-  animation: slide-in-left 0.3s ease-out;
+  animation: slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
+
+.animate-pop-in {
+  animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.stagger-1 { animation-delay: 60ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 180ms; }
+.stagger-4 { animation-delay: 240ms; }
 
 /* ── SUPERFICIES Y CARDS ── */
 .surface-glow {
   box-shadow: var(--shadow-card);
+  transition:
+    box-shadow var(--transition-slow),
+    border-color var(--transition-base),
+    transform var(--transition-slow);
 }
 
 .surface-glow:hover {
@@ -233,11 +269,12 @@ a {
 /* ── THEME TOGGLE ── */
 .theme-knob {
   transform: translateX(0);
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .theme-knob::after {
   content: "☀";
-  font-size: 11px;
+  font-size: 12px;
 }
 
 :root[data-theme="dark"] .theme-knob {
@@ -271,57 +308,118 @@ a {
 
 /* ── ENGAGEMENT BAR ── */
 .engagement-bar {
-  height: 4px;
-  border-radius: 2px;
+  height: 5px;
+  border-radius: 99px;
   background: var(--color-border);
   overflow: hidden;
 }
+
 .engagement-bar__fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 99px;
   background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
-  transition: width 0.6s ease-out;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: bar-fill 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-/* ── STAT CARD GLOW ── */
+/* ── STAT CARD ── */
 .stat-card {
   position: relative;
   overflow: hidden;
+  transition:
+    transform var(--transition-slow),
+    box-shadow var(--transition-slow),
+    border-color var(--transition-base);
 }
+
 .stat-card::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-base);
 }
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
 .stat-card:hover::before {
   opacity: 1;
 }
 
-/* ── NAV ITEM ACTIVE INDICATOR ── */
-.nav-active-indicator {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  border-radius: 0 3px 3px 0;
-  background: var(--color-accent);
-}
-
 /* ── SKELETON LOADING ── */
 .skeleton {
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--color-surface) 25%,
     var(--color-surface-hover) 50%,
-    var(--color-surface) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite;
+    var(--color-surface) 75%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
   border-radius: var(--radius-sm);
+}
+
+/* ── INTERACTIVE BUTTON — efecto ripple ── */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  border-radius: inherit;
+  transition: none;
+}
+
+.btn-ripple:active::after {
+  animation: ripple 0.45s ease-out both;
+}
+
+/* ── FOCUS RING — solo botones y links, nunca inputs ── */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── MODAL ── */
+.modal-backdrop {
+  animation: fade-up 0.18s ease both;
+}
+
+.modal-content {
+  animation: scale-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── TABLE ROW HOVER ── */
+.table-row-hover {
+  transition:
+    background-color var(--transition-base),
+    transform var(--transition-slow);
+}
+
+/* ── PULSE ── */
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── GRADIENT TEXT ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

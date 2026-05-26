@@ -8,7 +8,6 @@ import Button from "@/components/ui/Button";
 import AuthCard from "@/components/ui/AuthCard";
 import { authApi } from "@/lib/api";
 
-// Pantalla de login conectada a POST /api/auth/login.
 export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -16,27 +15,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }));
-    setErrors((current) => ({ ...current, [field]: undefined, general: undefined }));
+    setForm((c) => ({ ...c, [field]: value }));
+    setErrors((c) => ({ ...c, [field]: undefined, general: undefined }));
   };
 
-  // Validacion local para mostrar errores antes de llamar al backend.
   const validate = () => {
-    const nextErrors = {};
-
-    if (!form.email.includes("@")) nextErrors.email = "Email invalido";
-    if (form.password.length < 8) nextErrors.password = "Minimo 8 caracteres";
-
-    return nextErrors;
+    const e = {};
+    if (!form.email.includes("@")) e.email = "Email inválido";
+    if (form.password.length < 8)  e.password = "Mínimo 8 caracteres";
+    return e;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    const nextErrors = validate();
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
+    const e = validate();
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
     try {
       setLoading(true);
       const data = await authApi.login(form);
@@ -52,12 +46,15 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthCard title="Iniciar sesion" subtitle="Accede a tu panel de metricas">
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <AuthCard title="Bienvenido de nuevo" subtitle="Accede a tu panel de métricas">
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
         {errors.general && (
-          <p className="animate-fade-in rounded-[var(--radius-sm)] border border-[var(--color-error)]/40 bg-[var(--color-error)]/10 px-3 py-2 text-sm text-[var(--color-error)]">
-            {errors.general}
-          </p>
+          <div className="animate-fade-in flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-error)]/30 bg-[var(--color-error-soft)] px-4 py-3">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-error)" className="mt-0.5 shrink-0">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.5 3.5h1v4h-1v-4zm0 5h1v1h-1v-1z"/>
+            </svg>
+            <p className="text-sm text-[var(--color-error)]">{errors.general}</p>
+          </div>
         )}
 
         <Input
@@ -65,29 +62,32 @@ export default function LoginPage() {
           type="email"
           autoComplete="email"
           value={form.email}
-          onChange={(event) => handleChange("email", event.target.value)}
+          onChange={(e) => handleChange("email", e.target.value)}
           error={errors.email}
           placeholder="tu@email.com"
         />
 
         <Input
-          label="Contrasena"
+          label="Contraseña"
           type="password"
           autoComplete="current-password"
           value={form.password}
-          onChange={(event) => handleChange("password", event.target.value)}
+          onChange={(e) => handleChange("password", e.target.value)}
           error={errors.password}
-          placeholder="Tu contrasena"
+          placeholder="••••••••"
         />
 
-        <Button type="submit" loading={loading}>
+        <Button type="submit" size="lg" loading={loading} className="w-full mt-1">
           Entrar
         </Button>
 
-        <p className="text-center text-sm text-[var(--color-muted)]">
-          No tienes cuenta?{" "}
-          <Link href="/register" className="font-medium text-[var(--color-accent)] hover:underline">
-            Registrate
+        <p className="text-center text-[13px] text-[var(--color-muted)]">
+          ¿No tienes cuenta?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-[var(--color-accent)] hover:underline"
+          >
+            Regístrate gratis
           </Link>
         </p>
       </form>

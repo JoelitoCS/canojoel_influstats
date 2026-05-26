@@ -1,20 +1,25 @@
 "use client";
 
-// Estilos por variante con la nueva paleta coral/púrpura.
+// Estilos por variante con paleta violeta/cyan.
 const VARIANTS = {
   primary: [
+    "btn-ripple",
     "bg-[var(--color-accent)] text-white",
-    "hover:brightness-110",
-    "shadow-[0_0_16px_var(--color-accent-glow)]",
-    "hover:shadow-[0_0_28px_var(--color-accent-glow)]",
+    "hover:bg-[var(--color-accent-dim)]",
+    "shadow-[0_2px_12px_var(--color-accent-glow)]",
+    "hover:shadow-[0_4px_20px_var(--color-accent-glow)]",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0 active:scale-[0.98]",
     "focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
-    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none",
     "font-semibold tracking-wide",
   ].join(" "),
 
   secondary: [
     "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] backdrop-blur",
-    "hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+    "hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0 active:scale-[0.98]",
     "focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     "font-medium",
@@ -23,19 +28,31 @@ const VARIANTS = {
   ghost: [
     "bg-transparent text-[var(--color-muted)]",
     "hover:text-[var(--color-text)] hover:bg-[var(--color-accent-soft)]",
+    "active:scale-[0.98]",
     "focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]",
     "disabled:opacity-50 disabled:cursor-not-allowed",
     "font-medium",
+  ].join(" "),
+
+  danger: [
+    "btn-ripple",
+    "bg-[var(--color-error)] text-white",
+    "hover:brightness-110",
+    "shadow-[0_2px_10px_rgba(239,68,68,0.25)]",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0 active:scale-[0.98]",
+    "focus-visible:ring-2 focus-visible:ring-[var(--color-error)] focus-visible:ring-offset-2",
+    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "font-semibold",
   ].join(" "),
 };
 
 const SIZES = {
   sm: "h-8 px-4 text-xs rounded-[var(--radius-sm)]",
-  md: "h-11 px-6 text-sm rounded-[var(--radius-md)]",
-  lg: "h-13 px-8 text-base rounded-[var(--radius-md)]",
+  md: "h-10 px-5 text-sm rounded-[var(--radius-md)]",
+  lg: "h-12 px-7 text-[15px] rounded-[var(--radius-md)]",
 };
 
-// Botón reutilizable con estado de carga.
 export default function Button({
   children,
   variant = "primary",
@@ -48,10 +65,9 @@ export default function Button({
     <button
       className={[
         "inline-flex items-center justify-center gap-2",
-        "transition-all duration-200 ease-out",
+        "transition-all duration-[var(--transition-slow,200ms)] ease-out",
         "outline-none cursor-pointer select-none",
-        "active:scale-[0.97] hover:-translate-y-0.5",
-        VARIANTS[variant],
+        VARIANTS[variant] || VARIANTS.primary,
         SIZES[size],
         className,
       ].join(" ")}
@@ -60,7 +76,8 @@ export default function Button({
     >
       {loading && (
         <svg
-          className="h-4 w-4 shrink-0 animate-spin"
+          className="h-4 w-4 shrink-0"
+          style={{ animation: "spin 0.8s linear infinite" }}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

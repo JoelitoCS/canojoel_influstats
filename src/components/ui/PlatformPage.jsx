@@ -191,7 +191,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
   const gradId = `grad-${platform}`;
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+    <div className="chart-enter rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
 
       {/* Tabs internos */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -488,7 +488,7 @@ export default function PlatformPage({
 
             return (
               <div key={key}
-                className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+                className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
                 style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
                 <p className="mt-2 text-2xl font-bold text-[var(--color-text)]">
@@ -558,7 +558,7 @@ export default function PlatformPage({
                   const g = row.growth != null ? parseFloat(row.growth) : null;
                   const rowBg = g === null ? undefined : g >= 0 ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)";
                   return (
-                    <tr key={row.id} className="transition-colors hover:bg-[var(--color-surface-strong)]/40"
+                    <tr key={row.id} className="table-row-hover hover:bg-[var(--color-surface-strong)]/40"
                       style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateX(-8px)", transition: `opacity 0.3s ease ${idx*40}ms, transform 0.3s ease ${idx*40}ms`, background: rowBg }}>
                       <td className="py-3 pr-4 font-medium text-[var(--color-text)]">
                         {new Date(row.weekDate).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}

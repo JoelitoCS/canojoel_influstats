@@ -1,30 +1,29 @@
-import { Outfit, Playfair_Display } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
-// Fuente display para titulares — con personalidad y elegancia.
-const playfair = Playfair_Display({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-// Fuente body moderna geométrica — excelente legibilidad en dashboards.
-const outfit = Outfit({
+// Plus Jakarta Sans — moderna, geométrica y muy legible en dashboards.
+const jakarta = Plus_Jakarta_Sans({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-// Metadatos globales.
+// Inter como fallback de sistema — máxima legibilidad en textos pequeños.
+const inter = Inter({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
 export const metadata = {
-  title: "InfluStats",
+  title: "InfluStats — Command Center",
   description: "Plataforma para registrar y analizar métricas sociales.",
 };
 
-// Script para aplicar el tema antes de que React hidrate.
+// Script para aplicar el tema antes de que React hidrate — evita flash.
 const themeScript = `
   try {
     const storedTheme = localStorage.getItem("theme");
@@ -37,8 +36,8 @@ const themeScript = `
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" data-theme="dark" suppressHydrationWarning className={`${playfair.variable} ${outfit.variable}`}>
-      <body className="min-h-screen font-[var(--font-body)] antialiased">
+    <html lang="es" data-theme="dark" suppressHydrationWarning className={`${jakarta.variable} ${inter.variable}`}>
+      <body className="min-h-screen antialiased" style={{ fontFamily: "var(--font-body), system-ui, sans-serif" }}>
         <Script
           id="theme-init"
           strategy="beforeInteractive"
