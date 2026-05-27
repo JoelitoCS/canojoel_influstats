@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore, useRef } from "react";
+import { useState, useEffect, useCallback, useSyncExternalStore, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PlatformPage from "@/components/ui/PlatformPage";
@@ -14,6 +14,16 @@ const subscribeStorage = (cb) => {
 };
 const getToken = () => localStorage.getItem("token");
 const serverSnap = () => null;
+
+// ─── TikTok theme helper ────────────────────────────────────────────────────
+// Oscuro → botón blanco (contrasta con fondo oscuro), texto e icono negros
+// Claro  → botón negro (contrasta con fondo claro), texto e icono blancos
+function getTikTokStyle(theme) {
+  const isDark = theme === "dark";
+  return isDark
+    ? { bg: "#ffffff", text: "#000000", icon: "#000000", border: "rgba(255,255,255,0.18)" }
+    : { bg: "#000000", text: "#ffffff", icon: "#ffffff", border: "rgba(0,0,0,0.18)" };
+}
 
 // ─── Config de plataformas ────────────────────────────────────────────────────
 const PLATFORMS = [
@@ -78,11 +88,11 @@ const PILL_LIMIT = 5;
 // ─────────────────────────────────────────────────────────────────────────────
 //  PAGE
 // ─────────────────────────────────────────────────────────────────────────────
-export default function PlataformasPage({ searchParams }) {
+export default function PlataformasPage({ searchParams: searchParamsPromise }) {
   const router = useRouter();
   const token = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
+  const searchParams = use(searchParamsPromise);
 
-  // ✅ FIX: reemplazo de useSearchParams
   const initialTab =
     PLATFORMS.find((p) => p.key === searchParams?.tab)?.key ?? "instagram";
 
@@ -91,6 +101,15 @@ export default function PlataformasPage({ searchParams }) {
   const [animating, setAnimating] = useState(false);
   const [period, setPeriod] = useState("month");
   const prevTabRef = useRef(initialTab);
+
+  // Tema reactivo para TikTok
+  const [theme, setTheme] = useState("dark");
+  useEffect(() => {
+    const update = () => setTheme(document.documentElement.dataset.theme || "dark");
+    update();
+    window.addEventListener("themechange", update);
+    return () => window.removeEventListener("themechange", update);
+  }, []);
 
   const [cache, setCache] = useState(() =>
     Object.fromEntries(
@@ -225,17 +244,44 @@ export default function PlataformasPage({ searchParams }) {
           </p>
         </div>
 
-        <div className="flex gap-1 p-2 border rounded-lg">
-          {PLATFORMS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => handleTabChange(p.key)}
-              disabled={animating}
-            >
-              <PlatformIcon platform={p.key} size={16} />
-              {p.label}
-            </button>
-          ))}
+        <div className="flex gap-2">
+          {PLATFORMS.map((p) => {
+            const isActive   = activeTab === p.key;
+            const isTikTok    = p.key === "tiktok";
+            const tiktokStyle = isTikTok ? getTikTokStyle(theme) : null;
+            const activeBg    = isTikTok ? tiktokStyle.bg   : p.color;
+            const activeText  = isTikTok ? tiktokStyle.text : "white";
+            const activeIcon  = isTikTok ? tiktokStyle.icon : "white";
+            const inactiveIcon = isTikTok
+              ? (theme === "dark" ? "#ffffff" : "#000000")
+              : p.color;
+            const inactiveBorder = isTikTok
+              ? tiktokStyle.border
+              : p.color
+                ? p.color.replace("var(--color-instagram)","rgba(225,48,108,0.35)").replace("var(--color-youtube)","rgba(255,34,34,0.35)").replace("var(--color-twitch)","rgba(124,58,237,0.35)")
+                : "var(--color-border)";
+
+            return (
+              <button
+                key={p.key}
+                onClick={() => handleTabChange(p.key)}
+                disabled={animating}
+                className="btn-ripple flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] border px-3 py-2.5 text-sm font-semibold transition-all duration-200 min-h-[44px]"
+                style={
+                  isActive
+                    ? { background: activeBg, color: activeText, borderColor: activeBg, boxShadow: `0 2px 12px rgba(0,0,0,0.22), 0 0 0 1px ${activeBg}` }
+                    : { background: "transparent", borderColor: inactiveBorder, color: "var(--color-muted)" }
+                }
+              >
+                <PlatformIcon
+                  platform={p.key}
+                  size={16}
+                  color={isActive ? activeIcon : inactiveIcon}
+                />
+                <span className="hidden sm:inline">{p.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div>
@@ -252,7 +298,6 @@ export default function PlataformasPage({ searchParams }) {
             loading={loading}
             chartFields={meta.chartFields}
             growthField={meta.growthField}
-            hideProfileSelector
           />
         </div>
 

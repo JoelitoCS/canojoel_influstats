@@ -21,7 +21,7 @@ const PAGE_SIZE = 8;
 export const PLATFORM_META = {
   instagram: { label: "Instagram", color: "#e1306c", gradient: "#e1306c,#f77737" },
   youtube:   { label: "YouTube",   color: "#ff0000", gradient: "#ff0000,#ff6b6b" },
-  tiktok:    { label: "TikTok",    color: "var(--color-tiktok)", activeBg: "var(--color-tiktok-bg)", activeText: "var(--color-tiktok-text)", activeBorder: "var(--color-tiktok-border)", gradient: "var(--color-tiktok),var(--color-tiktok)" },
+  tiktok:    { label: "TikTok",    color: null, activeBg: "var(--color-tiktok-bg)", activeText: "var(--color-tiktok-text)", activeBorder: "var(--color-tiktok-border)", gradient: null },
   twitch:    { label: "Twitch",    color: "#9146ff", gradient: "#9146ff,#bf94ff" },
 };
 
@@ -259,7 +259,7 @@ function ChartWrapper({ children, delay = 0 }) {
   );
 }
 
-function ChartsSection({ data, chartFields, color, platform }) {
+function ChartsSection({ data, chartFields, color, platform, theme }) {
   const [activeTab, setActiveTab] = useState("metrics");
   const [animKey, setAnimKey]     = useState(0);
 
@@ -273,8 +273,11 @@ function ChartsSection({ data, chartFields, color, platform }) {
   if (!chartData.length) return null;
 
   const gradId = `grad-${platform}`;
-  const activeBg = platform === "tiktok" ? "var(--color-tiktok-bg)" : color;
-  const activeText = platform === "tiktok" ? "var(--color-tiktok-text)" : "white";
+  // Botones internos del gráfico (Métricas / Engagement / Crecimiento)
+  // Para TikTok usamos el mismo color dinámico que las líneas
+  const isTT       = platform === "tiktok";
+  const activeBg   = isTT ? color : color;
+  const activeText = isTT ? (theme === "dark" ? "#000000" : "#ffffff") : "white";
 
   return (
     <div className="chart-enter rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
@@ -305,7 +308,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
             <defs>
               {chartFields.map((f, i) => (
                 <linearGradient key={f.key} id={`${gradId}-${f.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={color} stopOpacity={0.25 - i * 0.04} />
+                  <stop offset="5%"  stopColor={color} stopOpacity={isTT ? 0.18 : 0.25 - i * 0.04} />
                   <stop offset="95%" stopColor={color} stopOpacity={0} />
                 </linearGradient>
               ))}
@@ -317,7 +320,7 @@ function ChartsSection({ data, chartFields, color, platform }) {
             <Legend formatter={(value) => <span style={{ fontSize: 11, color: "var(--color-muted)" }}>{value}</span>} />
             {chartFields.map((f, i) => (
               <Area key={f.key} type="monotone" dataKey={f.key} name={f.label} stroke={color}
-                strokeWidth={i === 0 ? 2.5 : 1.5} strokeOpacity={1 - i * 0.15}
+                strokeWidth={i === 0 ? 2.5 : 1.5} strokeOpacity={isTT ? 1 : 1 - i * 0.15}
                 fill={`url(#${gradId}-${f.key})`} dot={false}
                 activeDot={{ r: 5, fill: color, stroke: "var(--color-surface)", strokeWidth: 2 }}
                 animationBegin={0} animationDuration={1200} animationEasing="ease-out" />
@@ -380,9 +383,26 @@ export default function PlatformPage({
   history, period, onPeriod, loading, chartFields, growthField,
   hideProfileSelector = false,
 }) {
-  const meta     = PLATFORM_META[platform];
-  const activeBg = meta.activeBg || meta.color;
-  const activeText = meta.activeText || "white";
+  const meta       = PLATFORM_META[platform];
+  const isTikTok    = platform === "tiktok";
+
+  // Color reactivo para TikTok: oscuro → blanco, claro → negro
+  const [theme, setTheme] = useState(() =>
+    typeof document !== "undefined"
+      ? (document.documentElement.dataset.theme || "dark")
+      : "dark"
+  );
+  useEffect(() => {
+    const update = () => setTheme(document.documentElement.dataset.theme || "dark");
+    update();
+    window.addEventListener("themechange", update);
+    return () => window.removeEventListener("themechange", update);
+  }, []);
+  const tikTokChartColor = theme === "dark" ? "#ffffff" : "#000000";
+
+  const chartColor  = isTikTok ? tikTokChartColor : meta.color;
+  const activeBg    = meta.activeBg || meta.color;
+  const activeText  = meta.activeText || "white";
   const activeBorder = meta.activeBorder || meta.color;
   const profile  = profiles?.find((p) => p.id === selectedId) || profiles?.[0] || null;
   const filtered = filterByPeriod(history, period);
@@ -437,22 +457,51 @@ export default function PlatformPage({
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-[var(--font-display)] text-3xl sm:text-4xl font-bold flex items-center gap-3" style={{ color: meta.color }}>
-            <PlatformIcon platform={platform} size={36} color={meta.color} />
+          <h1 className="font-[var(--font-display)] text-3xl sm:text-4xl font-bold flex items-center gap-3" style={{ color: chartColor }}>
+            <PlatformIcon platform={platform} size={36} color={chartColor} />
             {meta.label}
           </h1>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             @{profile.username} · Estadísticas y crecimiento semanal
           </p>
           {!hideProfileSelector && profiles.length > 1 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {profiles.map((p) => (
-                <button key={p.id} onClick={() => onSelectProfile(p.id)}
-                  className={["rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150", p.id === selectedId ? "shadow-sm" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"].join(" ")}
-                  style={p.id === selectedId ? { background: activeBg, color: activeText, borderColor: activeBorder } : {}}>
-                  @{p.username}
-                </button>
-              ))}
+            <div className="mt-3">
+              {profiles.length < 5 ? (
+                // ── Pills (< 5 perfiles) ──────────────────────────────────
+                <div className="flex flex-wrap gap-2">
+                  {profiles.map((p) => (
+                    <button key={p.id} onClick={() => onSelectProfile(p.id)}
+                      className={["rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150",
+                        p.id === selectedId
+                          ? "shadow-sm"
+                          : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"
+                      ].join(" ")}
+                      style={p.id === selectedId ? { background: activeBg, color: activeText, borderColor: activeBorder } : {}}>
+                      @{p.username}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                // ── Select estilizado (≥ 5 perfiles) ─────────────────────
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-[var(--color-muted)] shrink-0">Perfil</span>
+                  <div className="relative flex-1 max-w-xs">
+                    <select
+                      value={selectedId || ""}
+                      onChange={(e) => onSelectProfile(e.target.value)}
+                      className="w-full appearance-none rounded-[var(--radius-md)] border bg-[var(--color-surface-strong)] pl-3 pr-8 py-1.5 text-xs font-semibold text-[var(--color-text)] cursor-pointer transition-all duration-150 focus:outline-none"
+                      style={{ borderColor: activeBorder }}
+                    >
+                      {profiles.map((p) => (
+                        <option key={p.id} value={p.id}>@{p.username}</option>
+                      ))}
+                    </select>
+                    {/* Flecha custom */}
+                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-muted)]" style={{ fontSize: 10 }}>▼</span>
+                  </div>
+                  <span className="text-xs text-[var(--color-muted)] shrink-0">{profiles.length} perfiles</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -482,13 +531,13 @@ export default function PlatformPage({
             const positive = delta !== null && delta >= 0;
             return (
               <div key={key} className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
-                style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
+                style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${chartColor}` }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
                     <p className="mt-2 text-2xl font-bold text-[var(--color-text)]"><AnimatedNumber value={curr ?? 0} /></p>
                   </div>
-                  <StatIcon metric={key} color={meta.color} />
+                  <StatIcon metric={key} color={chartColor} />
                 </div>
                 {delta !== null ? (
                   <div className="mt-2 flex items-center gap-1.5">
@@ -510,7 +559,7 @@ export default function PlatformPage({
       ) : null}
 
       {!loading && !noData && (
-        <ChartsSection data={filtered} chartFields={chartFields} color={meta.color} platform={platform} />
+        <ChartsSection data={filtered} chartFields={chartFields} color={chartColor} platform={platform} theme={theme} />
       )}
 
       {!loading && !noData && (
@@ -592,7 +641,7 @@ export default function PlatformPage({
       {noData && (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] py-16 text-center">
           <p className="text-sm text-[var(--color-muted)]">No hay datos para el período seleccionado.</p>
-          <a href="/dashboard/metrics" className="mt-3 inline-block text-sm font-semibold" style={{ color: meta.color }}>
+          <a href="/dashboard/metrics" className="mt-3 inline-block text-sm font-semibold" style={{ color: chartColor }}>
             Añadir estadísticas →
           </a>
         </div>
