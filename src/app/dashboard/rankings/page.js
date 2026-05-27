@@ -18,11 +18,11 @@ const PLATFORMS = [
 ];
 
 function getTikTokStyle() {
-  if (typeof document === "undefined") return { bg: "#000", text: "#fff", icon: "#fff" };
+  if (typeof document === "undefined") return { bg: "#050506", text: "#ffffff", icon: "#ffffff" };
   const isDark = document.documentElement.dataset.theme === "dark";
   return isDark
-    ? { bg: "#ffffff", text: "#000000", icon: "#000000" }
-    : { bg: "#000000", text: "#ffffff", icon: "#ffffff" };
+    ? { bg: "#050506", text: "#ffffff", icon: "#ffffff" }
+    : { bg: "#ffffff", text: "#000000", icon: "#000000" };
 }
 
 const SORTS = [

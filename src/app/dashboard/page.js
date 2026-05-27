@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
@@ -150,44 +151,44 @@ export default function DashboardPage() {
 
         {/* ── Banner stale ── */}
         {staleProfiles.length > 0 && (
-          <div className="rounded-[var(--radius-lg)] border border-amber-500/30 bg-amber-500/10 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="rounded-[var(--radius-lg)] border border-[var(--color-warning)]/35 bg-[var(--color-warning-soft)] px-4 py-3 shadow-[0_12px_28px_rgba(217,119,6,0.12)] sm:px-5 sm:py-4">
             {/* En móvil apilamos verticalmente; en sm+ va en fila */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-amber-500/20 text-amber-400">
+                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--color-warning)]/15 text-[var(--color-warning)]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                   </svg>
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-amber-300">
+                  <p className="text-sm font-semibold text-[var(--color-warning)]">
                     {staleProfiles.length === 1 ? "1 perfil lleva más de 7 días sin actualizarse" : `${staleProfiles.length} perfiles llevan más de 7 días sin actualizarse`}
                   </p>
                   {/* En móvil mostramos solo los 2 primeros para no saturar */}
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {staleProfiles.slice(0, 3).map((p) => (
-                      <span key={p.id} className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      <span key={p.id} className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-warning)]/30 bg-[var(--color-surface)]/65 px-2.5 py-1 text-xs font-medium text-[var(--color-warning)]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
                         @{p.username}
-                        <span className="text-amber-500/70">·</span>
-                        <span className="text-amber-400/70">{p.platform}</span>
-                        {p.daysAgo !== null && <span className="text-amber-500/60">· {p.daysAgo}d</span>}
+                        <span className="text-[var(--color-warning)]/70">·</span>
+                        <span className="text-[var(--color-warning)]/80">{p.platform}</span>
+                        {p.daysAgo !== null && <span className="text-[var(--color-warning)]/70">· {p.daysAgo}d</span>}
                       </span>
                     ))}
                     {staleProfiles.length > 3 && (
-                      <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400">
+                      <span className="inline-flex items-center rounded-full border border-[var(--color-warning)]/30 bg-[var(--color-surface)]/65 px-2.5 py-1 text-xs font-medium text-[var(--color-warning)]">
                         +{staleProfiles.length - 3} más
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <a
+              <Link
                 href="/dashboard/metrics"
-                className="shrink-0 self-start rounded-[var(--radius-md)] bg-amber-500 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-amber-400 active:scale-95 sm:self-auto"
+                className="shrink-0 self-start rounded-[var(--radius-md)] bg-[var(--color-warning)] px-4 py-2 text-xs font-bold text-white shadow-[0_6px_18px_rgba(217,119,6,0.25)] transition-all hover:brightness-110 active:scale-95 sm:self-auto"
               >
                 Actualizar ahora
-              </a>
+              </Link>
             </div>
           </div>
         )}

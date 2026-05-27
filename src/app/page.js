@@ -1,135 +1,200 @@
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
-import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import PlatformIcon from "@/components/ui/PlatformIcon";
+import styles from "./page.module.css";
 
-const features = [
-  { label: "Registro y login conectados",       done: true  },
-  { label: "Perfiles sociales por plataforma",  done: true  },
-  { label: "Tema claro y oscuro instantáneo",   done: true  },
-  { label: "Sidebar lateral con navegación",    done: true  },
+const platforms = [
+  { key: "instagram", name: "Instagram", detail: "Visualizaciones, likes, guardados y seguidores" },
+  { key: "tiktok", name: "TikTok", detail: "Visitas, comentarios, favoritos y compartidos" },
+  { key: "youtube", name: "YouTube", detail: "Visitas, likes, suscriptores y miembros" },
+  { key: "twitch", name: "Twitch", detail: "Visualizaciones, seguidores, subs y bits" },
 ];
 
-const platformsList = [
-  { name: "Instagram", color: "var(--color-instagram)" },
-  { name: "TikTok",    color: "var(--color-tiktok)"    },
-  { name: "YouTube",   color: "var(--color-youtube)"   },
-  { name: "Twitch",    color: "var(--color-twitch)"    },
+const capabilities = [
+  {
+    title: "Dashboard central",
+    text: "Consulta seguidores totales, visitas, engagement medio, perfiles activos y avisos de perfiles sin actualizar.",
+    stat: "Resumen",
+  },
+  {
+    title: "Métricas semanales",
+    text: "Introduce datos por plataforma con campos adaptados y deja que la app calcule engagement y crecimiento.",
+    stat: "Auto",
+  },
+  {
+    title: "Rankings",
+    text: "Ordena perfiles por seguidores, engagement, crecimiento o visitas para detectar quién destaca en cada red.",
+    stat: "Top",
+  },
+  {
+    title: "Comparativas",
+    text: "Enfrenta dos perfiles y revisa ganador, diferencias porcentuales, gráficas de barras y radar normalizado.",
+    stat: "VS",
+  },
+  {
+    title: "Vistas por plataforma",
+    text: "Analiza Instagram, TikTok, YouTube y Twitch con historiales, gráficas y tablas filtradas.",
+    stat: "4",
+  },
+  {
+    title: "Panel admin",
+    text: "Gestiona usuarios, perfiles y métricas desde una zona protegida para cuentas con rol administrador.",
+    stat: "Admin",
+  },
+];
+
+const workflow = [
+  "Crea tu cuenta o inicia sesión.",
+  "Registra tus perfiles sociales con su plataforma.",
+  "Añade métricas semanales desde Estadísticas.",
+  "Compara resultados en dashboard, rankings y gráficas.",
+];
+
+const formulas = [
+  { platform: "Instagram", formula: "(likes + guardados) / visualizaciones" },
+  { platform: "YouTube", formula: "likes / visitas" },
+  { platform: "TikTok", formula: "(likes + comentarios + favoritos + compartidos) / visitas" },
+  { platform: "Twitch", formula: "suscriptores / seguidores" },
 ];
 
 export default function Home() {
   return (
     <AppShell>
-      <section className="grid min-h-[calc(100vh-9rem)] items-center gap-12 py-10 lg:grid-cols-[1.1fr_0.9fr]">
-
-        {/* ── Hero copy ── */}
-        <div className="animate-fade-in">
-          {/* Badge */}
-          <span className={[
-            "inline-flex items-center gap-2 rounded-full px-4 py-1.5",
-            "border border-[var(--color-accent)]/30 bg-[var(--color-accent-soft)]",
-            "text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--color-accent)]",
-          ].join(" ")}>
-            <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
-            InfluStats Beta
-          </span>
-
-          {/* Headline */}
-          <h1 className={[
-            "mt-6 max-w-2xl text-4xl font-bold leading-[1.15] tracking-tight text-[var(--color-text)]",
-            "sm:text-5xl lg:text-[56px]",
-          ].join(" ")}>
-            Controla tus redes desde un{" "}
-            <span className="gradient-text">panel limpio</span>{" "}
-            y rápido.
-          </h1>
-
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-[var(--color-text-secondary)]">
-            Registra tus perfiles sociales, valida URLs reales y analiza tus métricas con una interfaz moderna y lista para crecer.
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/register">
-              <Button size="lg" className="w-full sm:w-auto">
-                Crear cuenta gratis
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                Iniciar sesión
-              </Button>
-            </Link>
-          </div>
-
-          {/* Plataformas */}
-          <div className="mt-10 flex flex-wrap items-center gap-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-              Plataformas:
+      <div className={`${styles.homePage} space-y-8`}>
+        <section className={`${styles.hero} animate-fade-in`}>
+          <div className={styles.heroContent}>
+            <span className={styles.eyebrow}>
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+              InfluStats
             </span>
-            {platformsList.map((p) => (
-              <span
-                key={p.name}
-                className={[
-                  "inline-flex items-center gap-2 rounded-full",
-                  "border border-[var(--color-border)] bg-[var(--color-surface)]/60 px-3 py-1.5",
-                  "text-xs font-semibold backdrop-blur",
-                  "transition-all duration-150 hover:border-[var(--color-border-strong)] hover:-translate-y-0.5",
-                ].join(" ")}
-              >
-                <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
-                {p.name}
-              </span>
-            ))}
-          </div>
-        </div>
 
-        {/* ── Card de estado ── */}
-        <Card className="animate-fade-in stagger-2">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">
-                Estado del proyecto
-              </p>
-              <h2 className="mt-2 text-xl font-bold text-[var(--color-text)]">Base lista ✓</h2>
-            </div>
-            <div className={[
-              "grid h-12 w-12 place-items-center rounded-[var(--radius-md)]",
-              "bg-[var(--color-accent)] text-sm font-black text-white",
-              "shadow-[0_4px_20px_var(--color-accent-glow)]",
-              "transition-transform duration-[var(--transition-spring)] hover:scale-105 hover:rotate-[-3deg]",
-            ].join(" ")}>
-              IS
+            <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-[1.08] text-[var(--color-text)] sm:text-5xl lg:text-[60px]">
+              Todo tu rendimiento social en un solo panel.
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-[var(--color-text-secondary)] sm:text-lg">
+              InfluStats te ayuda a registrar perfiles, guardar métricas semanales, calcular engagement, comparar cuentas y descubrir qué plataforma está creciendo mejor.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/register" className={`${styles.cta} ${styles.ctaPrimary}`}>
+                Crear cuenta gratis
+              </Link>
+              <Link href="/login" className={`${styles.cta} ${styles.ctaSecondary}`}>
+                Iniciar sesión
+              </Link>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2.5">
-            {features.map((f, i) => (
-              <div
-                key={f.label}
-                className={[
-                  "flex items-center gap-3 rounded-[var(--radius-sm)]",
-                  "border border-[var(--color-border)] bg-[var(--color-surface-strong)]/50 p-3.5",
-                  "transition-all duration-150",
-                  "hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent-soft)]/50",
-                  "animate-fade-in",
-                ].join(" ")}
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <span className={[
-                  "grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold",
-                  f.done
-                    ? "bg-[var(--color-success-soft)] text-[var(--color-success)]"
-                    : "bg-[var(--color-warning-soft)] text-[var(--color-warning)]",
-                ].join(" ")}>
-                  {f.done ? "✓" : "…"}
-                </span>
-                <span className="text-[13px] text-[var(--color-text-secondary)]">{f.label}</span>
+          <div className={styles.preview} aria-label="Vista previa del dashboard de InfluStats">
+            <div className={styles.previewTop}>
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className={styles.previewGrid}>
+              <div>
+                <p>Seguidores</p>
+                <strong>248K</strong>
               </div>
+              <div>
+                <p>Engagement</p>
+                <strong>8.72%</strong>
+              </div>
+              <div>
+                <p>Visitas</p>
+                <strong>1.9M</strong>
+              </div>
+            </div>
+            <div className={styles.previewChart}>
+              <span style={{ height: "42%" }} />
+              <span style={{ height: "64%" }} />
+              <span style={{ height: "50%" }} />
+              <span style={{ height: "78%" }} />
+              <span style={{ height: "68%" }} />
+              <span style={{ height: "92%" }} />
+            </div>
+            <div className={styles.previewRows}>
+              {platforms.map((platform) => (
+                <div key={platform.name}>
+                  <span className={styles.rowIcon}>
+                    <PlatformIcon platform={platform.key} size={20} />
+                  </span>
+                  <p>{platform.name}</p>
+                  <strong>{platform.name === "TikTok" ? "+18%" : platform.name === "YouTube" ? "+9%" : "+12%"}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {platforms.map((platform) => (
+            <Card key={platform.name} className="animate-fade-in" padding="p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <span className={styles.platformIcon}>
+                  <PlatformIcon platform={platform.key} size={24} />
+                </span>
+                <h2 className="text-base font-bold text-[var(--color-text)]">{platform.name}</h2>
+              </div>
+              <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">{platform.detail}</p>
+            </Card>
+          ))}
+        </section>
+
+        <section>
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">Funciones</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)] sm:text-3xl">
+              Qué puedes hacer dentro de la web
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {capabilities.map((item) => (
+              <Card key={item.title} padding="p-5">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <h3 className="text-lg font-bold text-[var(--color-text)]">{item.title}</h3>
+                  <span className={styles.statPill}>{item.stat}</span>
+                </div>
+                <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">{item.text}</p>
+              </Card>
             ))}
           </div>
-        </Card>
-      </section>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <Card padding="p-6">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">Flujo de uso</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)]">De perfil a decisión</h2>
+            <div className="mt-6 space-y-3">
+              {workflow.map((step, index) => (
+                <div key={step} className={styles.step}>
+                  <span>{index + 1}</span>
+                  <p>{step}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card padding="p-6">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-secondary)]">Engagement</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--color-text)]">Cálculos adaptados a cada red</h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              Cada plataforma tiene su propia forma de medir interacción. InfluStats multiplica estos ratios por 100 para mostrarlos como porcentaje.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {formulas.map((item) => (
+                <div key={item.platform} className={styles.formula}>
+                  <strong>{item.platform}</strong>
+                  <code>{item.formula}</code>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </section>
+      </div>
     </AppShell>
   );
 }

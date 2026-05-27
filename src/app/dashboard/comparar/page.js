@@ -32,7 +32,7 @@ function useInView() {
 
 const PLATFORMS = [
   { value: "instagram", label: "Instagram", color: "#e1306c" },
-  { value: "tiktok",    label: "TikTok",    color: "#00f2ea" },
+  { value: "tiktok",    label: "TikTok",    color: "var(--color-tiktok)", activeBg: "var(--color-tiktok-bg)", activeText: "var(--color-tiktok-text)", activeBorder: "var(--color-tiktok-border)" },
   { value: "youtube",   label: "YouTube",   color: "#ff0000" },
   { value: "twitch",    label: "Twitch",    color: "#9146ff" },
 ];
@@ -272,13 +272,16 @@ export default function CompararPage() {
 
         <Card>
           <div className="mb-5 flex gap-2 flex-wrap">
-            {PLATFORMS.map((p) => (
-              <button key={p.value} onClick={() => setPlatform(p.value)}
-                className={["rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150",
-                  platform === p.value ? "text-white border-transparent" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
-                style={platform === p.value ? { background: p.color } : {}}>{p.label}
-              </button>
-            ))}
+            {PLATFORMS.map((p) => {
+              const active = platform === p.value;
+              return (
+                <button key={p.value} onClick={() => setPlatform(p.value)}
+                  className={["rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-150",
+                    active ? "shadow-sm" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
+                  style={active ? { background: p.activeBg || p.color, color: p.activeText || "white", borderColor: p.activeBorder || "transparent" } : {}}>{p.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr]">

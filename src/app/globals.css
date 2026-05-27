@@ -10,29 +10,29 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --color-bg:           #f0f2f5;
-  --color-bg-soft:      #f6f7f9;
-  --color-bg-deep:      #e8eaee;
+  --color-bg:           #dde1e8;
+  --color-bg-soft:      #e6e9ef;
+  --color-bg-deep:      #cfd5df;
 
-  --color-surface:        rgba(255, 255, 255, 0.82);
-  --color-surface-strong: #ffffff;
-  --color-surface-hover:  rgba(255, 255, 255, 0.95);
+  --color-surface:        rgba(239, 241, 246, 0.88);
+  --color-surface-strong: #f1f3f7;
+  --color-surface-hover:  rgba(247, 248, 251, 0.96);
 
-  --color-sidebar:             #ffffff;
-  --color-sidebar-soft:        #f8f9fb;
-  --color-sidebar-text:        #72778a;
+  --color-sidebar:             #d6dbe4;
+  --color-sidebar-soft:        #cfd5df;
+  --color-sidebar-text:        #535b6c;
   --color-sidebar-text-active: #111318;
-  --color-sidebar-accent:      rgba(99, 91, 255, 0.08);
-  --color-sidebar-border:      rgba(0, 0, 0, 0.07);
+  --color-sidebar-accent:      rgba(99, 91, 255, 0.11);
+  --color-sidebar-border:      rgba(40, 44, 60, 0.16);
 
-  --color-topbar: rgba(240, 242, 245, 0.9);
+  --color-topbar: rgba(221, 225, 232, 0.9);
 
-  --color-border:        rgba(40, 44, 60, 0.10);
-  --color-border-strong: rgba(40, 44, 60, 0.18);
+  --color-border:        rgba(40, 44, 60, 0.16);
+  --color-border-strong: rgba(40, 44, 60, 0.28);
 
   --color-text:           #111318;
-  --color-text-secondary: #545868;
-  --color-muted:          #8a8fa4;
+  --color-text-secondary: #4f5564;
+  --color-muted:          #6c7384;
 
   --color-accent:      #635bff;
   --color-accent-dim:  #4f46e5;
@@ -46,16 +46,19 @@
   --color-error-soft:   rgba(239, 68, 68, 0.08);
   --color-success:      #10b981;
   --color-success-soft: rgba(16, 185, 129, 0.09);
-  --color-warning:      #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.09);
+  --color-warning:      #d97706;
+  --color-warning-soft: rgba(217, 119, 6, 0.16);
 
   --color-instagram: #e1306c;
-  --color-tiktok:    #00c2b8;
+  --color-tiktok:    #111318;
+  --color-tiktok-bg: #ffffff;
+  --color-tiktok-text: #111318;
+  --color-tiktok-border: rgba(17, 19, 24, 0.20);
   --color-youtube:   #ff2222;
   --color-twitch:    #7c3aed;
 
-  --shadow-card:       0 1px 2px rgba(20, 22, 40, 0.04), 0 6px 24px rgba(20, 22, 40, 0.06);
-  --shadow-card-hover: 0 4px 12px rgba(20, 22, 40, 0.08), 0 20px 48px rgba(20, 22, 40, 0.10);
+  --shadow-card:       0 1px 2px rgba(20, 22, 40, 0.05), 0 10px 28px rgba(20, 22, 40, 0.08);
+  --shadow-card-hover: 0 5px 14px rgba(20, 22, 40, 0.10), 0 22px 52px rgba(20, 22, 40, 0.12);
   --shadow-glow:       0 0 0 rgba(99, 91, 255, 0);
   --shadow-sidebar:    2px 0 16px rgba(20, 22, 40, 0.08);
 
@@ -117,7 +120,10 @@
   --color-warning-soft: rgba(251, 191, 36, 0.12);
 
   --color-instagram: #f472b6;
-  --color-tiktok:    #2dd4bf;
+  --color-tiktok:    #ffffff;
+  --color-tiktok-bg: #050506;
+  --color-tiktok-text: #ffffff;
+  --color-tiktok-border: rgba(255, 255, 255, 0.18);
   --color-youtube:   #f87171;
   --color-twitch:    #a78bfa;
 
@@ -515,9 +521,25 @@ a:focus-visible,
   padding-bottom seguro para que el contenido no quede tapado
   por la barra de gestos inferior en iOS.
 */
+.safe-bottom {
+  padding-bottom: 4rem;
+}
+
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 1024px) {
+  .safe-bottom {
+    padding-bottom: 5rem;
+  }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) and (min-width: 1024px) {
+  .safe-bottom {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
 }
 

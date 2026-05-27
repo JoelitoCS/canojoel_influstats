@@ -247,7 +247,12 @@ export default function AppShell({ children }) {
         aria-label="Barra de navegación lateral"
       >
         {/* ── Logo ───────────────────────────────────────────────────── */}
-        <div className="flex h-[60px] items-center gap-3 border-b border-[var(--color-sidebar-border)] px-4 sm:px-5">
+        <Link
+          href="/"
+          onClick={closeSidebar}
+          className="flex h-[60px] items-center gap-3 border-b border-[var(--color-sidebar-border)] px-4 transition-colors hover:bg-[var(--color-sidebar-accent)] sm:px-5"
+          aria-label="Ir a la home de InfluStats"
+        >
           <span className={[
             "grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-sm)]",
             "bg-[var(--color-accent)] text-sm font-black text-white",
@@ -260,7 +265,7 @@ export default function AppShell({ children }) {
             <p className="truncate text-[13px] font-bold text-[var(--color-sidebar-text-active)]">InfluStats</p>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">Command Center</p>
           </div>
-        </div>
+        </Link>
 
         {/* ── Navegación ─────────────────────────────────────────────── */}
         <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5" aria-label="Navegación principal">

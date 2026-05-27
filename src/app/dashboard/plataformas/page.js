@@ -26,7 +26,7 @@ const PLATFORMS = [
     ],
   },
   {
-    key: "tiktok", label: "TikTok", color: "var(--color-tiktok)",
+    key: "tiktok", label: "TikTok", color: "var(--color-tiktok)", activeBg: "var(--color-tiktok-bg)", activeText: "var(--color-tiktok-text)", activeBorder: "var(--color-tiktok-border)",
     growthField: "followers",
     chartFields: [
       { key: "followers", label: "Seguidores"  },
@@ -190,6 +190,9 @@ export default function PlataformasPage() {
             const platCache = cache[p.key];
             const hasData   = platCache.profiles !== undefined && !platCache.loading;
             const hasProfiles = hasData && platCache.profiles.length > 0;
+            const activeBg = p.activeBg || p.color;
+            const activeText = p.activeText || "white";
+            const activeBorder = p.activeBorder || p.color;
             return (
               <button
                 key={p.key}
@@ -198,12 +201,12 @@ export default function PlataformasPage() {
                 className={[
                   "relative flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-semibold transition-all duration-200",
                   isActive
-                    ? "text-white shadow-md"
+                    ? "shadow-md"
                     : "text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-strong)]/60",
                 ].join(" ")}
-                style={isActive ? { background: p.color } : {}}
+                style={isActive ? { background: activeBg, color: activeText, border: p.key === "tiktok" ? `1px solid ${activeBorder}` : undefined } : {}}
               >
-                <PlatformIcon platform={p.key} size={16} color={isActive ? "white" : p.color} />
+                <PlatformIcon platform={p.key} size={16} color={isActive ? activeText : p.color} />
                 <span className="hidden sm:inline">{p.label}</span>
 
                 {/* Punto indicador: verde = tiene perfiles, gris = sin perfiles */}
@@ -220,7 +223,7 @@ export default function PlataformasPage() {
                 {hasProfiles && platCache.profiles.length > 1 && (
                   <span
                     className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold"
-                    style={{ background: p.color, color: "white", outline: "2px solid var(--color-surface)" }}
+                    style={{ background: activeBg, color: activeText, border: p.key === "tiktok" ? `1px solid ${activeBorder}` : undefined, outline: "2px solid var(--color-surface)" }}
                   >
                     {platCache.profiles.length}
                   </span>
@@ -235,7 +238,9 @@ export default function PlataformasPage() {
           <ProfileSelector
             profiles={profiles}
             selectedId={selectedId}
-            color={meta.color}
+            color={meta.activeBg || meta.color}
+            activeText={meta.activeText || "white"}
+            activeBorder={meta.activeBorder || meta.color}
             onSelect={(id) => handleSelectProfile(activeTab, id)}
           />
         )}
@@ -270,7 +275,7 @@ export default function PlataformasPage() {
 }
 
 // ─── Selector de perfil: pills (≤5) o select (>5) ────────────────────────────
-function ProfileSelector({ profiles, selectedId, color, onSelect }) {
+function ProfileSelector({ profiles, selectedId, color, activeText = "white", activeBorder = color, onSelect }) {
   const usePills = profiles.length <= PILL_LIMIT;
 
   if (usePills) {
@@ -288,7 +293,7 @@ function ProfileSelector({ profiles, selectedId, color, onSelect }) {
                   ? "text-white border-transparent shadow-sm"
                   : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]",
               ].join(" ")}
-              style={active ? { background: color, borderColor: color } : {}}
+              style={active ? { background: color, color: activeText, borderColor: activeBorder } : {}}
             >
               @{p.username}
             </button>

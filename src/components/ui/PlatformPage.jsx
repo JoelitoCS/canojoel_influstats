@@ -21,7 +21,7 @@ const PAGE_SIZE = 8;
 export const PLATFORM_META = {
   instagram: { label: "Instagram", color: "#e1306c", gradient: "#e1306c,#f77737" },
   youtube:   { label: "YouTube",   color: "#ff0000", gradient: "#ff0000,#ff6b6b" },
-  tiktok:    { label: "TikTok",    color: "#00f2ea", gradient: "#00f2ea,#ff0050" },
+  tiktok:    { label: "TikTok",    color: "var(--color-tiktok)", activeBg: "var(--color-tiktok-bg)", activeText: "var(--color-tiktok-text)", activeBorder: "var(--color-tiktok-border)", gradient: "var(--color-tiktok),var(--color-tiktok)" },
   twitch:    { label: "Twitch",    color: "#9146ff", gradient: "#9146ff,#bf94ff" },
 };
 
@@ -122,6 +122,100 @@ function GrowthBadge({ value }) {
   );
 }
 
+function StatIcon({ metric, color }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  };
+
+  const icons = {
+    followers: (
+      <svg {...common}>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    subscribers: (
+      <svg {...common}>
+        <rect x="3" y="5" width="18" height="14" rx="3" />
+        <path d="m10 9 5 3-5 3V9Z" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+    subscribersTwitch: (
+      <svg {...common}>
+        <path d="M12 3 14.7 8.5l6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
+      </svg>
+    ),
+    views: (
+      <svg {...common}>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+    likes: (
+      <svg {...common}>
+        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+        <path d="M7 11 12 2a3 3 0 0 1 3 3v4h4.3a2 2 0 0 1 2 2.4l-1.5 7A3 3 0 0 1 16.9 21H7V11Z" />
+      </svg>
+    ),
+    comments: (
+      <svg {...common}>
+        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" />
+      </svg>
+    ),
+    favorites: (
+      <svg {...common}>
+        <path d="M19 21 12 17 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z" />
+      </svg>
+    ),
+    shares: (
+      <svg {...common}>
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="m8.6 13.5 6.8 4" />
+        <path d="m15.4 6.5-6.8 4" />
+      </svg>
+    ),
+    posts: (
+      <svg {...common}>
+        <rect x="4" y="4" width="16" height="16" rx="3" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </svg>
+    ),
+    paidMembers: (
+      <svg {...common}>
+        <path d="M12 2v20" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+    bits: (
+      <svg {...common}>
+        <path d="M12 2 20 8v8l-8 6-8-6V8l8-6Z" />
+        <path d="M12 6v12M8 9l8 6M16 9l-8 6" />
+      </svg>
+    ),
+  };
+
+  return (
+    <span
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-surface-strong)]"
+      style={{ color, border: `1px solid ${color}30` }}
+      aria-hidden="true"
+    >
+      {icons[metric] || icons.views}
+    </span>
+  );
+}
+
 function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
   const isActive = colKey === sortKey;
   return (
@@ -179,6 +273,8 @@ function ChartsSection({ data, chartFields, color, platform }) {
   if (!chartData.length) return null;
 
   const gradId = `grad-${platform}`;
+  const activeBg = platform === "tiktok" ? "var(--color-tiktok-bg)" : color;
+  const activeText = platform === "tiktok" ? "var(--color-tiktok-text)" : "white";
 
   return (
     <div className="chart-enter rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
@@ -194,8 +290,8 @@ function ChartsSection({ data, chartFields, color, platform }) {
             <button
               key={t.id}
               onClick={() => handleTab(t.id)}
-              className={["rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-semibold transition-all duration-150", activeTab === t.id ? "text-white shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
-              style={activeTab === t.id ? { background: color } : {}}
+              className={["rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-semibold transition-all duration-150", activeTab === t.id ? "shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
+              style={activeTab === t.id ? { background: activeBg, color: activeText, border: platform === "tiktok" ? "1px solid var(--color-tiktok-border)" : undefined } : {}}
             >
               {t.label}
             </button>
@@ -285,6 +381,9 @@ export default function PlatformPage({
   hideProfileSelector = false,
 }) {
   const meta     = PLATFORM_META[platform];
+  const activeBg = meta.activeBg || meta.color;
+  const activeText = meta.activeText || "white";
+  const activeBorder = meta.activeBorder || meta.color;
   const profile  = profiles?.find((p) => p.id === selectedId) || profiles?.[0] || null;
   const filtered = filterByPeriod(history, period);
   const latest   = filtered[0] || null;
@@ -324,7 +423,7 @@ export default function PlatformPage({
         </div>
         <h2 className="text-xl font-bold text-[var(--color-text)]">Aún no tienes un perfil de {meta.label}</h2>
         <p className="max-w-sm text-sm text-[var(--color-muted)]">Ve al Dashboard y añade tu perfil de {meta.label} para empezar a registrar estadísticas.</p>
-        <a href="/dashboard" className="mt-2 rounded-[var(--radius-md)] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90" style={{ background: meta.color }}>
+        <a href="/dashboard" className="mt-2 rounded-[var(--radius-md)] px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90" style={{ background: activeBg, color: activeText, border: platform === "tiktok" ? `1px solid ${activeBorder}` : undefined }}>
           Ir al Dashboard
         </a>
       </div>
@@ -349,8 +448,8 @@ export default function PlatformPage({
             <div className="mt-3 flex flex-wrap gap-2">
               {profiles.map((p) => (
                 <button key={p.id} onClick={() => onSelectProfile(p.id)}
-                  className={["rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150", p.id === selectedId ? "text-white border-transparent" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"].join(" ")}
-                  style={p.id === selectedId ? { background: meta.color, borderColor: meta.color } : {}}>
+                  className={["rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150", p.id === selectedId ? "shadow-sm" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"].join(" ")}
+                  style={p.id === selectedId ? { background: activeBg, color: activeText, borderColor: activeBorder } : {}}>
                   @{p.username}
                 </button>
               ))}
@@ -360,8 +459,8 @@ export default function PlatformPage({
         <div className="flex gap-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1">
           {["week", "month", "year"].map((p) => (
             <button key={p} onClick={() => onPeriod(p)}
-              className={["rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-semibold transition-all duration-200", period === p ? "text-white shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
-              style={period === p ? { background: meta.color } : {}}>
+              className={["rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-semibold transition-all duration-200", period === p ? "shadow-sm" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"].join(" ")}
+              style={period === p ? { background: activeBg, color: activeText, border: platform === "tiktok" ? `1px solid ${activeBorder}` : undefined } : {}}>
               {p === "week" ? "Semana" : p === "month" ? "Mes" : "Año"}
             </button>
           ))}
@@ -384,8 +483,13 @@ export default function PlatformPage({
             return (
               <div key={key} className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
                 style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
-                <p className="mt-2 text-2xl font-bold text-[var(--color-text)]"><AnimatedNumber value={curr ?? 0} /></p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
+                    <p className="mt-2 text-2xl font-bold text-[var(--color-text)]"><AnimatedNumber value={curr ?? 0} /></p>
+                  </div>
+                  <StatIcon metric={key} color={meta.color} />
+                </div>
                 {delta !== null ? (
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${positive ? "bg-[var(--color-success-soft)] text-[var(--color-success)]" : "bg-[var(--color-error-soft)] text-[var(--color-error)]"}`}>
@@ -470,8 +574,8 @@ export default function PlatformPage({
                   .map((item, i) => item === "…"
                     ? <span key={`e${i}`} className="px-1 text-xs text-[var(--color-muted)]">…</span>
                     : <button key={item} onClick={() => setPage(item)}
-                        className={["min-w-[28px] rounded-[var(--radius-sm)] border px-2 py-1.5 text-xs font-semibold transition-all", page===item ? "border-[var(--color-accent)] text-white" : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"].join(" ")}
-                        style={page===item ? { background: meta.color } : {}}>
+                        className={["min-w-[28px] rounded-[var(--radius-sm)] border px-2 py-1.5 text-xs font-semibold transition-all", page===item ? "" : "border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"].join(" ")}
+                        style={page===item ? { background: activeBg, color: activeText, borderColor: activeBorder } : {}}>
                         {item}
                       </button>
                   )}
