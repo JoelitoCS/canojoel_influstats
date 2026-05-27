@@ -129,6 +129,15 @@ Formulario adaptativo: los campos cambian según la plataforma del perfil selecc
 | TikTok | Visitas, Likes, Comentarios, Favoritos, Compartidos, Seguidores |
 | Twitch | Visualizaciones, Seguidores, Suscriptores (Prime+pago), Bits |
 
+El engagement se calcula automaticamente segun la plataforma:
+
+| Plataforma | Formula de engagement |
+|---|---|
+| Instagram | `((likes + guardados) / visualizaciones) * 100` |
+| YouTube | `(likes / visitas) * 100` |
+| TikTok | `((likes + comentarios + favoritos + compartidos) / visitas) * 100` |
+| Twitch | `(suscriptores / seguidores) * 100` |
+
 El historial incluye tabla paginada (8 filas), ordenación por cualquier columna y badge de crecimiento semanal (▲/▼/Primera semana). El color de fila es verde o rojo según `growth`.
 
 ---
