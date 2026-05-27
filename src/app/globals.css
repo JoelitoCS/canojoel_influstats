@@ -65,12 +65,12 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  --sidebar-width:    256px;
+  --sidebar-width:     256px;
   --sidebar-collapsed: 68px;
 
-  --transition-base:  150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow:  280ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring:320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-base:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ── TEMA OSCURO ── */
@@ -422,4 +422,128 @@ a:focus-visible,
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — utilidades y ajustes por breakpoint
+   Breakpoints de Tailwind usados en el proyecto:
+     sm  → 640px   (móvil grande / phablet)
+     md  → 768px   (tablet portrait)
+     lg  → 1024px  (tablet landscape / laptop pequeño)
+     xl  → 1280px  (desktop)
+     2xl → 1536px  (desktop grande)
+   ══════════════════════════════════════════════════════════════ */
+
+/*
+  ── TABLA RESPONSIVA ──────────────────────────────────────────
+  Garantiza que las tablas anchas (historial de métricas, ranking)
+  hagan scroll horizontal en móvil en lugar de romperse.
+  El wrapper .table-scroll se aplica en los componentes de tabla.
+*/
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+  /* Indicador visual de scroll horizontal en móvil */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
+
+/*
+  ── PÁGINA PRINCIPAL (main) ────────────────────────────────────
+  Padding fluido: mínimo en móvil, generoso en escritorio.
+  El <main> del AppShell usa estas clases directamente.
+*/
+.page-padding {
+  padding: 1rem;                /* móvil: 16px */
+}
+
+@media (min-width: 640px) {    /* sm: phablet */
+  .page-padding {
+    padding: 1.5rem;           /* 24px */
+  }
+}
+
+@media (min-width: 1024px) {   /* lg: desktop */
+  .page-padding {
+    padding: 2.25rem;          /* 36px */
+  }
+}
+
+/*
+  ── GRID DE STAT CARDS ────────────────────────────────────────
+  1 col en móvil → 2 en sm → 4 en lg.
+  Se mantiene con clases Tailwind en el JSX pero documentado aquí.
+*/
+
+/*
+  ── FORMULARIO DE MÉTRICAS ────────────────────────────────────
+  En móvil los campos van en 1 columna.
+  En sm van en 2 columnas.
+  En lg van en 3 columnas.
+  Controlado por grid gap-4 sm:grid-cols-2 lg:grid-cols-3 en el JSX.
+*/
+
+/*
+  ── SIDEBAR ───────────────────────────────────────────────────
+  < lg : overlay deslizante (hamburguesa)
+  ≥ lg : fijo en el lado izquierdo, siempre visible
+  El estado abierto/cerrado lo gestiona AppShell.jsx con useState.
+*/
+
+/*
+  ── HEADER (topbar) ───────────────────────────────────────────
+  h-[60px] fijo en todos los breakpoints.
+  Botón hamburguesa visible solo en < lg (clase lg:hidden).
+  Barra de búsqueda visible solo en ≥ sm (clase sm:flex).
+*/
+
+/*
+  ── SAFE AREA (iPhone con notch / Dynamic Island) ─────────────
+  padding-bottom seguro para que el contenido no quede tapado
+  por la barra de gestos inferior en iOS.
+*/
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/*
+  ── TOUCH TARGETS ─────────────────────────────────────────────
+  Los botones táctiles deben tener al menos 44×44px de área
+  interactiva (directriz de Apple / Material Design).
+  Los botones de la sidebar y el topbar ya tienen h-9/h-10 (36-40px),
+  añadimos min-h para que en móvil sean 44px.
+*/
+@media (max-width: 1023px) {
+  .touch-target {
+    min-height: 44px;
+    min-width:  44px;
+  }
+}
+
+/*
+  ── TIPOGRAFÍA FLUIDA ─────────────────────────────────────────
+  Los h1 de las páginas usan text-3xl en móvil y sm:text-4xl en
+  pantallas más grandes. Esto ya está en el JSX con clases Tailwind.
+  Añadimos aquí el ajuste para pantallas muy pequeñas (< 380px).
+*/
+@media (max-width: 380px) {
+  .text-fluid-title {
+    font-size: 1.5rem;  /* 24px en pantallas muy pequeñas */
+    line-height: 1.2;
+  }
 }

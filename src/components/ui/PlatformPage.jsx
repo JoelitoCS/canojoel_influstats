@@ -18,7 +18,6 @@ import PlatformIcon from "@/components/ui/PlatformIcon";
 
 const PAGE_SIZE = 8;
 
-// ── Meta por plataforma ───────────────────────────────────────────────────────
 export const PLATFORM_META = {
   instagram: { label: "Instagram", color: "#e1306c", gradient: "#e1306c,#f77737" },
   youtube:   { label: "YouTube",   color: "#ff0000", gradient: "#ff0000,#ff6b6b" },
@@ -26,7 +25,6 @@ export const PLATFORM_META = {
   twitch:    { label: "Twitch",    color: "#9146ff", gradient: "#9146ff,#bf94ff" },
 };
 
-// ── Filtro de período ─────────────────────────────────────────────────────────
 function filterByPeriod(history, period) {
   if (!history?.length) return [];
   const now  = new Date();
@@ -37,13 +35,11 @@ function filterByPeriod(history, period) {
   return history.filter((r) => new Date(r.weekDate) >= from);
 }
 
-// ── Formato de fecha corto para el eje X ─────────────────────────────────────
 const fmtXDate = (d) => {
   if (!d) return "";
   return new Date(d).toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 };
 
-// ── Formato de números grandes (1.2M, 45K…) ──────────────────────────────────
 const fmtShort = (n) => {
   const v = Number(n);
   if (isNaN(v)) return "—";
@@ -52,10 +48,20 @@ const fmtShort = (n) => {
   return v.toLocaleString("es-ES");
 };
 
-// ── Clamp a mínimo 0 — los porcentajes no pueden ser negativos por datos incorrectos ──
 const clampPct = (v) => Math.max(parseFloat(v) || 0, 0);
 
+// ── Campos que siempre muestran el valor con sufijo % ─────────────────────────
+// Se detecta por dataKey (nombre interno de Recharts) O por name (etiqueta visible).
+// Esto cubre todos los tabs: en Métricas el dataKey es "engagement",
+// en Crecimiento el name es "Crecimiento %".
+const PCT_DATAKEYS = new Set(["engagement", "growth"]);
+const PCT_NAMES    = new Set(["Engagement", "Crecimiento", "Crecimiento %"]);
+
 // ── Tooltip personalizado ─────────────────────────────────────────────────────
+// IMPORTANTE: p.value puede llegar como objeto Decimal de Prisma (no number JS)
+// cuando los datos vienen directamente de la API sin deserializar.
+// Por eso no usamos "typeof p.value === 'number'" sino clampPct() / Number()
+// que hacen parseFloat internamente y funcionan con cualquier tipo.
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -63,22 +69,24 @@ function CustomTooltip({ active, payload, label }) {
       <p className="mb-2 font-semibold text-[var(--color-muted)] uppercase tracking-widest">
         {fmtXDate(label)}
       </p>
-      {payload.map((p) => (
-        <div key={p.dataKey} className="flex items-center gap-2 py-0.5">
-          <span className="h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
-          <span className="text-[var(--color-muted)]">{p.name}:</span>
-          <span className="font-bold text-[var(--color-text)]">
-            {typeof p.value === "number" && (p.dataKey === "engagement" || p.dataKey === "growth")
-              ? `${clampPct(p.value).toFixed(2)} %`
-              : fmtShort(p.value)}
-          </span>
-        </div>
-      ))}
+      {payload.map((p) => {
+        const isPct = PCT_DATAKEYS.has(p.dataKey) || PCT_NAMES.has(p.name);
+        return (
+          <div key={p.dataKey} className="flex items-center gap-2 py-0.5">
+            <span className="h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
+            <span className="text-[var(--color-muted)]">{p.name}:</span>
+            <span className="font-bold text-[var(--color-text)]">
+              {isPct
+                ? `${clampPct(p.value).toFixed(2)} %`
+                : fmtShort(p.value)}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-// ── Animación de número desde 0 ───────────────────────────────────────────────
 function AnimatedNumber({ value, decimals = 0, suffix = "" }) {
   const [display, setDisplay] = useState(0);
   const raf = useRef(null);
@@ -96,16 +104,12 @@ function AnimatedNumber({ value, decimals = 0, suffix = "" }) {
   }, [value]);
   return (
     <span>
-      {display.toLocaleString("es-ES", {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      })}
+      {display.toLocaleString("es-ES", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
       {suffix}
     </span>
   );
 }
 
-// ── Badge de crecimiento ──────────────────────────────────────────────────────
 function GrowthBadge({ value }) {
   if (value === null || value === undefined)
     return <span className="rounded-full bg-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]">Primera semana</span>;
@@ -118,7 +122,6 @@ function GrowthBadge({ value }) {
   );
 }
 
-// ── SortTh ────────────────────────────────────────────────────────────────────
 function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
   const isActive = colKey === sortKey;
   return (
@@ -134,9 +137,6 @@ function SortTh({ label, colKey, sortKey, sortDir, onSort }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Hook: dispara cuando el elemento entra en el viewport (IntersectionObserver)
-// ─────────────────────────────────────────────────────────────────────────────
 function useInView(options = {}) {
   const ref     = useRef(null);
   const [inView, setInView] = useState(false);
@@ -152,9 +152,6 @@ function useInView(options = {}) {
   return [ref, inView];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Wrapper animado para cualquier gráfico — fade + slide-up al entrar en vista
-// ─────────────────────────────────────────────────────────────────────────────
 function ChartWrapper({ children, delay = 0 }) {
   const [ref, inView] = useInView();
   return (
@@ -168,19 +165,12 @@ function ChartWrapper({ children, delay = 0 }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Sección de gráficos con Recharts
-// ─────────────────────────────────────────────────────────────────────────────
 function ChartsSection({ data, chartFields, color, platform }) {
   const [activeTab, setActiveTab] = useState("metrics");
   const [animKey, setAnimKey]     = useState(0);
 
-  const handleTab = (id) => {
-    setActiveTab(id);
-    setAnimKey((k) => k + 1); // fuerza remount del gráfico → re-anima
-  };
+  const handleTab = (id) => { setActiveTab(id); setAnimKey((k) => k + 1); };
 
-  // Preparar datos cronológicos para Recharts (más antiguo → más reciente)
   const chartData = useMemo(
     () => [...data].reverse().map((r) => ({ ...r, _date: r.weekDate })),
     [data]
@@ -193,7 +183,6 @@ function ChartsSection({ data, chartFields, color, platform }) {
   return (
     <div className="chart-enter rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
 
-      {/* Tabs internos */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-base font-semibold text-[var(--color-text)]">Evolución en el período</h2>
         <div className="flex gap-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)]/40 p-1">
@@ -214,7 +203,6 @@ function ChartsSection({ data, chartFields, color, platform }) {
         </div>
       </div>
 
-      {/* ── Tab Métricas: AreaChart multi-línea ── */}
       {activeTab === "metrics" && (
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart key={animKey} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -227,46 +215,21 @@ function ChartsSection({ data, chartFields, color, platform }) {
               ))}
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="_date"
-              tickFormatter={fmtXDate}
-              tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tickFormatter={fmtShort}
-              tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              width={48}
-            />
+            <XAxis dataKey="_date" tickFormatter={fmtXDate} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={fmtShort} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              formatter={(value) => <span style={{ fontSize: 11, color: "var(--color-muted)" }}>{value}</span>}
-            />
+            <Legend formatter={(value) => <span style={{ fontSize: 11, color: "var(--color-muted)" }}>{value}</span>} />
             {chartFields.map((f, i) => (
-              <Area
-                key={f.key}
-                type="monotone"
-                dataKey={f.key}
-                name={f.label}
-                stroke={color}
-                strokeWidth={i === 0 ? 2.5 : 1.5}
-                strokeOpacity={1 - i * 0.15}
-                fill={`url(#${gradId}-${f.key})`}
-                dot={false}
+              <Area key={f.key} type="monotone" dataKey={f.key} name={f.label} stroke={color}
+                strokeWidth={i === 0 ? 2.5 : 1.5} strokeOpacity={1 - i * 0.15}
+                fill={`url(#${gradId}-${f.key})`} dot={false}
                 activeDot={{ r: 5, fill: color, stroke: "var(--color-surface)", strokeWidth: 2 }}
-                animationBegin={0}
-                animationDuration={1200}
-                animationEasing="ease-out"
-              />
+                animationBegin={0} animationDuration={1200} animationEasing="ease-out" />
             ))}
           </AreaChart>
         </ResponsiveContainer>
       )}
 
-      {/* ── Tab Engagement ── */}
       {activeTab === "engagement" && (
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart key={animKey} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -277,98 +240,45 @@ function ChartsSection({ data, chartFields, color, platform }) {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="_date"
-              tickFormatter={fmtXDate}
-              tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-              axisLine={false} tickLine={false}
-            />
-            <YAxis
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-              axisLine={false} tickLine={false}
-              width={48}
-            />
+            <XAxis dataKey="_date" tickFormatter={fmtXDate} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={(v) => `${v}%`} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
             <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="engagement"
-              name="Engagement"
-              stroke="var(--color-secondary)"
-              strokeWidth={2.5}
-              fill={`url(#${gradId}-eng)`}
+            <Area type="monotone" dataKey="engagement" name="Engagement"
+              stroke="var(--color-secondary)" strokeWidth={2.5} fill={`url(#${gradId}-eng)`}
               dot={{ r: 3, fill: "var(--color-secondary)", stroke: "var(--color-surface)", strokeWidth: 2 }}
-              activeDot={{ r: 6 }}
-              animationBegin={0}
-              animationDuration={1200}
-              animationEasing="ease-out"
-            />
+              activeDot={{ r: 6 }} animationBegin={0} animationDuration={1200} animationEasing="ease-out" />
           </AreaChart>
         </ResponsiveContainer>
       )}
 
-      {/* ── Tab Crecimiento: LineChart con ReferenceLine en 0 ── */}
       {activeTab === "growth" && (() => {
-        const growthData = chartData.filter(
-          (r) => r.growth !== null && r.growth !== undefined
-        );
+        const growthData = chartData.filter((r) => r.growth !== null && r.growth !== undefined);
         if (!growthData.length)
           return <p className="py-10 text-center text-sm text-[var(--color-muted)]">Necesitas al menos 2 semanas para ver el crecimiento.</p>;
         return (
           <ResponsiveContainer key={animKey} width="100%" height={300}>
-            <LineChart key={animKey} data={growthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <LineChart data={growthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-              <XAxis
-                dataKey="_date"
-                tickFormatter={fmtXDate}
-                tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-                axisLine={false} tickLine={false}
-              />
-              <YAxis
-                tickFormatter={(v) => `${v}%`}
-                tick={{ fill: "var(--color-muted)", fontSize: 11 }}
-                axisLine={false} tickLine={false}
-                width={52}
-              />
+              <XAxis dataKey="_date" tickFormatter={fmtXDate} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={(v) => `${v}%`} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} width={52} />
               <Tooltip content={<CustomTooltip />} />
-              {/* Línea de referencia en 0 */}
               <ReferenceLine y={0} stroke="var(--color-border)" strokeWidth={1.5} strokeDasharray="4 4" />
-              <Line
-                type="monotone"
-                dataKey="growth"
-                name="Crecimiento %"
-                stroke="var(--color-success)"
-                strokeWidth={2.5}
+              <Line type="monotone" dataKey="growth" name="Crecimiento %"
+                stroke="var(--color-success)" strokeWidth={2.5}
                 dot={(props) => {
                   const { cx, cy, payload } = props;
                   const pos = payload.growth >= 0;
-                  return (
-                    <circle
-                      key={`dot-${cx}-${cy}`}
-                      cx={cx} cy={cy} r={4}
-                      fill={pos ? "var(--color-success)" : "var(--color-error)"}
-                      stroke="var(--color-surface)"
-                      strokeWidth={2}
-                    />
-                  );
+                  return <circle key={`dot-${cx}-${cy}`} cx={cx} cy={cy} r={4} fill={pos ? "var(--color-success)" : "var(--color-error)"} stroke="var(--color-surface)" strokeWidth={2} />;
                 }}
-                activeDot={{ r: 6 }}
-                animationBegin={0}
-                animationDuration={1200}
-                animationEasing="ease-out"
-                />
-                </LineChart>
-                </ResponsiveContainer>
+                activeDot={{ r: 6 }} animationBegin={0} animationDuration={1200} animationEasing="ease-out" />
+            </LineChart>
+          </ResponsiveContainer>
         );
       })()}
-
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PlatformPage — componente principal
-// ─────────────────────────────────────────────────────────────────────────────
 export default function PlatformPage({
   platform, profiles, selectedId, onSelectProfile,
   history, period, onPeriod, loading, chartFields, growthField,
@@ -405,7 +315,6 @@ export default function PlatformPage({
     else { setSortKey(key); setSortDir("desc"); }
   };
 
-  // ── Sin perfil ────────────────────────────────────────────────────────────
   if (!profiles?.length) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
@@ -427,7 +336,6 @@ export default function PlatformPage({
   return (
     <div className="grid gap-6" style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(12px)", transition: "opacity 0.4s ease, transform 0.4s ease" }}>
 
-      {/* ── Cabecera ──────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-[var(--font-display)] text-3xl sm:text-4xl font-bold flex items-center gap-3" style={{ color: meta.color }}>
@@ -437,22 +345,12 @@ export default function PlatformPage({
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             @{profile.username} · Estadísticas y crecimiento semanal
           </p>
-
-          {/* Selector de perfil — solo visible si hay más de uno y no está oculto por el padre */}
           {!hideProfileSelector && profiles.length > 1 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {profiles.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => onSelectProfile(p.id)}
-                  className={[
-                    "rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150",
-                    p.id === selectedId
-                      ? "text-white border-transparent"
-                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]",
-                  ].join(" ")}
-                  style={p.id === selectedId ? { background: meta.color, borderColor: meta.color } : {}}
-                >
+                <button key={p.id} onClick={() => onSelectProfile(p.id)}
+                  className={["rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-150", p.id === selectedId ? "text-white border-transparent" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)]"].join(" ")}
+                  style={p.id === selectedId ? { background: meta.color, borderColor: meta.color } : {}}>
                   @{p.username}
                 </button>
               ))}
@@ -470,7 +368,6 @@ export default function PlatformPage({
         </div>
       </div>
 
-      {/* ── Stat cards ────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1,2,3,4].map((i) => <div key={i} className="skeleton h-28 rounded-[var(--radius-lg)]"/>)}
@@ -478,40 +375,26 @@ export default function PlatformPage({
       ) : latest ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {chartFields.map(({ key, label }, idx) => {
-            // Primer registro del período (el más antiguo dentro del filtro)
             const oldest  = filtered[filtered.length - 1];
             const curr    = latest[key]  != null ? Number(latest[key])  : null;
             const prev    = oldest && oldest.id !== latest.id && oldest[key] != null ? Number(oldest[key]) : null;
             const delta   = curr !== null && prev !== null ? curr - prev : null;
             const pct     = delta !== null && prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
             const positive = delta !== null && delta >= 0;
-
             return (
-              <div key={key}
-                className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+              <div key={key} className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
                 style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${meta.color}` }}>
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
-                <p className="mt-2 text-2xl font-bold text-[var(--color-text)]">
-                  <AnimatedNumber value={curr ?? 0} />
-                </p>
-
-                {/* Delta respecto al inicio del período */}
+                <p className="mt-2 text-2xl font-bold text-[var(--color-text)]"><AnimatedNumber value={curr ?? 0} /></p>
                 {delta !== null ? (
                   <div className="mt-2 flex items-center gap-1.5">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                      positive
-                        ? "bg-[var(--color-success-soft)] text-[var(--color-success)]"
-                        : "bg-[var(--color-error-soft)] text-[var(--color-error)]"
-                    }`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${positive ? "bg-[var(--color-success-soft)] text-[var(--color-success)]" : "bg-[var(--color-error-soft)] text-[var(--color-error)]"}`}>
                       {positive
                         ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 8 L8 2 M3 2 h5 v5"/></svg>
-                        : <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2 L2 8 M7 8 H2 V3"/></svg>
-                      }
+                        : <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2 L2 8 M7 8 H2 V3"/></svg>}
                       {pct !== null ? `${Math.abs(pct).toFixed(1)} %` : fmtShort(Math.abs(delta))}
                     </span>
-                    <span className="text-[10px] text-[var(--color-muted)]">
-                      vs inicio del período
-                    </span>
+                    <span className="text-[10px] text-[var(--color-muted)]">vs inicio del período</span>
                   </div>
                 ) : (
                   key === growthField && <div className="mt-2"><GrowthBadge value={latest.growth} /></div>
@@ -522,17 +405,10 @@ export default function PlatformPage({
         </div>
       ) : null}
 
-      {/* ── Gráficos Recharts ─────────────────────────────────────────── */}
       {!loading && !noData && (
-        <ChartsSection
-          data={filtered}
-          chartFields={chartFields}
-          color={meta.color}
-          platform={platform}
-        />
+        <ChartsSection data={filtered} chartFields={chartFields} color={meta.color} platform={platform} />
       )}
 
-      {/* ── Tabla historial ───────────────────────────────────────────── */}
       {!loading && !noData && (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -545,12 +421,12 @@ export default function PlatformPage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)] text-left text-[11px] uppercase tracking-widest text-[var(--color-muted)]">
-                  <SortTh label="Semana"     colKey="weekDate"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh label="Semana"      colKey="weekDate"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                   {chartFields.map(({ key, label }) => (
                     <SortTh key={key} label={label} colKey={key} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                   ))}
-                  <SortTh label="Engagement" colKey="engagement" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-                  <SortTh label="Crecimiento" colKey="growth"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh label="Engagement"  colKey="engagement" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                  <SortTh label="Crecimiento" colKey="growth"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -580,7 +456,6 @@ export default function PlatformPage({
               </tbody>
             </table>
           </div>
-
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between gap-4">
               <span className="text-xs text-[var(--color-muted)]">Página {page} de {totalPages}</span>
