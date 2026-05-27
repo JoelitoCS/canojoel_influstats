@@ -450,7 +450,9 @@ export default function PlatformPage({
     );
   }
 
-  const noData = !loading && filtered.length === 0;
+  // noData solo es verdadero si loading ya terminó Y history ya llegó (no es undefined)
+  // Esto evita el flash de "sin datos" durante la carga inicial
+  const noData = !loading && history !== undefined && filtered.length === 0;
 
   return (
     <div className="grid gap-6" style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(12px)", transition: "opacity 0.4s ease, transform 0.4s ease" }}>
@@ -641,7 +643,7 @@ export default function PlatformPage({
       {noData && (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] py-16 text-center">
           <p className="text-sm text-[var(--color-muted)]">No hay datos para el período seleccionado.</p>
-          <a href="/dashboard/metrics" className="mt-3 inline-block text-sm font-semibold" style={{ color: chartColor }}>
+          <a href="/dashboard/metrics" className="mt-3 inline-block text-sm font-semibold transition-opacity hover:opacity-75" style={{ color: chartColor }}>
             Añadir estadísticas →
           </a>
         </div>

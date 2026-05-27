@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PlatformPage from "@/components/ui/PlatformPage";
+import PlatformSpinner from "@/components/ui/PlatformSpinner";
 import { profilesApi, metricsApi } from "@/lib/api";
 
 const CHART_FIELDS = [
@@ -21,11 +22,11 @@ export default function YoutubePage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profiles,    setProfiles]    = useState(undefined);
-  const [selectedId,  setSelectedId]  = useState(null);
-  const [history,     setHistory]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [period,      setPeriod]      = useState("month");
+  const [profiles,   setProfiles]   = useState(undefined);
+  const [selectedId, setSelectedId] = useState(null);
+  const [history,    setHistory]    = useState(undefined);
+  const [loading,    setLoading]    = useState(true);
+  const [period,     setPeriod]     = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
@@ -37,9 +38,10 @@ export default function YoutubePage() {
       const yts  = list.filter((p) => p.platform?.toLowerCase() === "youtube");
       setProfiles(yts);
       if (yts.length > 0) setSelectedId(yts[0].id);
+      else { setHistory([]); setLoading(false); }
     } catch {
       setProfiles([]);
-    } finally {
+      setHistory([]);
       setLoading(false);
     }
   }, []);
@@ -59,18 +61,22 @@ export default function YoutubePage() {
 
   return (
     <AppShell>
-      <PlatformPage
-        platform="youtube"
-        profiles={profiles === undefined ? [] : profiles}
-        selectedId={selectedId}
-        onSelectProfile={setSelectedId}
-        history={history}
-        period={period}
-        onPeriod={setPeriod}
-        loading={loading}
-        chartFields={CHART_FIELDS}
-        growthField="subscribers"
-      />
+      {profiles === undefined ? (
+        <PlatformSpinner platform="youtube" />
+      ) : (
+        <PlatformPage
+          platform="youtube"
+          profiles={profiles}
+          selectedId={selectedId}
+          onSelectProfile={setSelectedId}
+          history={history}
+          period={period}
+          onPeriod={setPeriod}
+          loading={loading}
+          chartFields={CHART_FIELDS}
+          growthField="subscribers"
+        />
+      )}
     </AppShell>
   );
 }

@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PlatformPage from "@/components/ui/PlatformPage";
+import PlatformSpinner from "@/components/ui/PlatformSpinner";
 import { profilesApi, metricsApi } from "@/lib/api";
 
-// Campos a mostrar en cards y gráficos para Instagram.
 const CHART_FIELDS = [
   { key: "followers", label: "Seguidores"      },
   { key: "views",     label: "Visualizaciones" },
@@ -23,11 +23,11 @@ export default function InstagramPage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profiles, setProfiles] = useState(undefined); // undefined=cargando, []=sin perfiles
+  const [profiles,   setProfiles]   = useState(undefined);
   const [selectedId, setSelectedId] = useState(null);
-  const [history, setHistory]   = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [period, setPeriod]     = useState("month");
+  const [history,    setHistory]    = useState(undefined);
+  const [loading,    setLoading]    = useState(true);
+  const [period,     setPeriod]     = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
@@ -39,16 +39,16 @@ export default function InstagramPage() {
       const igs  = list.filter((p) => p.platform?.toLowerCase() === "instagram");
       setProfiles(igs);
       if (igs.length > 0) setSelectedId(igs[0].id);
+      else { setHistory([]); setLoading(false); }
     } catch {
       setProfiles([]);
-    } finally {
+      setHistory([]);
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { if (token) init(); }, [token, init]);
 
-  // Carga métricas cuando cambia el perfil seleccionado
   useEffect(() => {
     if (!selectedId) return;
     setLoading(true);
@@ -62,18 +62,22 @@ export default function InstagramPage() {
 
   return (
     <AppShell>
-      <PlatformPage
-        platform="instagram"
-        profiles={profiles === undefined ? [] : profiles}
-        selectedId={selectedId}
-        onSelectProfile={setSelectedId}
-        history={history}
-        period={period}
-        onPeriod={setPeriod}
-        loading={loading}
-        chartFields={CHART_FIELDS}
-        growthField="followers"
-      />
+      {profiles === undefined ? (
+        <PlatformSpinner platform="instagram" />
+      ) : (
+        <PlatformPage
+          platform="instagram"
+          profiles={profiles}
+          selectedId={selectedId}
+          onSelectProfile={setSelectedId}
+          history={history}
+          period={period}
+          onPeriod={setPeriod}
+          loading={loading}
+          chartFields={CHART_FIELDS}
+          growthField="followers"
+        />
+      )}
     </AppShell>
   );
 }

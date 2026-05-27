@@ -115,7 +115,7 @@ export default function PlataformasPage({ searchParams: searchParamsPromise }) {
     Object.fromEntries(
       PLATFORMS.map((p) => [
         p.key,
-        { profiles: undefined, selectedId: null, history: [], loading: true },
+        { profiles: undefined, selectedId: null, history: undefined, loading: true },
       ])
     )
   );
@@ -134,38 +134,25 @@ export default function PlataformasPage({ searchParams: searchParamsPromise }) {
     });
 
     try {
-      const data = await profilesApi.getAll();
-      const list = Array.isArray(data) ? data : data?.profiles || [];
-      const profs = list.filter(
-        (p) => p.platform?.toLowerCase() === platformKey
-      );
-
-      let history = [];
+      // Pedir perfiles primero para obtener el primer ID
+      const data  = await profilesApi.getAll();
+      const list  = Array.isArray(data) ? data : data?.profiles || [];
+      const profs = list.filter((p) => p.platform?.toLowerCase() === platformKey);
       const firstId = profs[0]?.id || null;
 
-      if (firstId) {
-        const m = await metricsApi.getAll(firstId);
-        history = m?.metrics || [];
-      }
+      // Pedir métricas en paralelo si hay perfil
+      const history = firstId
+        ? await metricsApi.getAll(firstId).then((m) => m?.metrics || []).catch(() => [])
+        : [];
 
       setCache((prev) => ({
         ...prev,
-        [platformKey]: {
-          profiles: profs,
-          selectedId: firstId,
-          history,
-          loading: false,
-        },
+        [platformKey]: { profiles: profs, selectedId: firstId, history, loading: false },
       }));
     } catch {
       setCache((prev) => ({
         ...prev,
-        [platformKey]: {
-          profiles: [],
-          selectedId: null,
-          history: [],
-          loading: false,
-        },
+        [platformKey]: { profiles: [], selectedId: null, history: [], loading: false },
       }));
     }
   }, []);
@@ -204,8 +191,17 @@ export default function PlataformasPage({ searchParams: searchParamsPromise }) {
   }, []);
 
   useEffect(() => {
-    if (token) loadPlatform(activeTab);
-  }, [token, activeTab, loadPlatform]);
+    if (!token) return;
+    // Cargar la tab activa inmediatamente
+    loadPlatform(activeTab);
+    // Precargar las demás en paralelo con un pequeño delay para no bloquear
+    const t = setTimeout(() => {
+      PLATFORMS.forEach((p) => { if (p.key !== activeTab) loadPlatform(p.key); });
+    }, 400);
+    return () => clearTimeout(t);
+  // Solo en el montaje inicial
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleTabChange = (key) => {
     if (key === activeTab || animating) return;
@@ -285,20 +281,44 @@ export default function PlataformasPage({ searchParams: searchParamsPromise }) {
         </div>
 
         <div>
-          <PlatformPage
-            platform={activeTab}
-            profiles={profiles || []}
-            selectedId={selectedId}
-            onSelectProfile={(id) =>
-              handleSelectProfile(activeTab, id)
-            }
-            history={history}
-            period={period}
-            onPeriod={setPeriod}
-            loading={loading}
-            chartFields={meta.chartFields}
-            growthField={meta.growthField}
-          />
+          {profiles === undefined ? (
+            // ── Spinner de carga inicial ────────────────────────────────
+            <div className="flex flex-col items-center justify-center gap-4 py-32">
+              <div className="relative h-14 w-14">
+                <div className="absolute inset-0 rounded-full border-[3px] border-[var(--color-border)]" />
+                <div
+                  className="absolute inset-0 rounded-full border-[3px] border-transparent"
+                  style={{
+                    borderTopColor: meta.color || "var(--color-accent)",
+                    animation: "spin 0.9s linear infinite",
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <PlatformIcon
+                    platform={activeTab}
+                    size={22}
+                    color={meta.color || "var(--color-accent)"}
+                  />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-[var(--color-muted)] animate-pulse">
+                Cargando métricas de {meta.label}…
+              </p>
+            </div>
+          ) : (
+            <PlatformPage
+              platform={activeTab}
+              profiles={profiles}
+              selectedId={selectedId}
+              onSelectProfile={(id) => handleSelectProfile(activeTab, id)}
+              history={history}
+              period={period}
+              onPeriod={setPeriod}
+              loading={loading}
+              chartFields={meta.chartFields}
+              growthField={meta.growthField}
+            />
+          )}
         </div>
 
       </div>

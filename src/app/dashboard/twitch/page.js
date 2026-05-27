@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PlatformPage from "@/components/ui/PlatformPage";
+import PlatformSpinner from "@/components/ui/PlatformSpinner";
 import { profilesApi, metricsApi } from "@/lib/api";
 
 const CHART_FIELDS = [
@@ -21,11 +22,11 @@ export default function TwitchPage() {
   const router = useRouter();
   const token  = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
 
-  const [profiles,    setProfiles]    = useState(undefined);
-  const [selectedId,  setSelectedId]  = useState(null);
-  const [history,     setHistory]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [period,      setPeriod]      = useState("month");
+  const [profiles,   setProfiles]   = useState(undefined);
+  const [selectedId, setSelectedId] = useState(null);
+  const [history,    setHistory]    = useState(undefined);
+  const [loading,    setLoading]    = useState(true);
+  const [period,     setPeriod]     = useState("month");
 
   useEffect(() => { if (token === null) router.replace("/login"); }, [token, router]);
 
@@ -37,9 +38,10 @@ export default function TwitchPage() {
       const tws  = list.filter((p) => p.platform?.toLowerCase() === "twitch");
       setProfiles(tws);
       if (tws.length > 0) setSelectedId(tws[0].id);
+      else { setHistory([]); setLoading(false); }
     } catch {
       setProfiles([]);
-    } finally {
+      setHistory([]);
       setLoading(false);
     }
   }, []);
@@ -59,18 +61,22 @@ export default function TwitchPage() {
 
   return (
     <AppShell>
-      <PlatformPage
-        platform="twitch"
-        profiles={profiles === undefined ? [] : profiles}
-        selectedId={selectedId}
-        onSelectProfile={setSelectedId}
-        history={history}
-        period={period}
-        onPeriod={setPeriod}
-        loading={loading}
-        chartFields={CHART_FIELDS}
-        growthField="followers"
-      />
+      {profiles === undefined ? (
+        <PlatformSpinner platform="twitch" />
+      ) : (
+        <PlatformPage
+          platform="twitch"
+          profiles={profiles}
+          selectedId={selectedId}
+          onSelectProfile={setSelectedId}
+          history={history}
+          period={period}
+          onPeriod={setPeriod}
+          loading={loading}
+          chartFields={CHART_FIELDS}
+          growthField="followers"
+        />
+      )}
     </AppShell>
   );
 }
