@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const icons = {
@@ -161,7 +161,6 @@ function NavItem({ item, isActive, onClick }) {
         href={item.href}
         onClick={onClick}
         className={[
-          /* touch-target mínimo 44px alto para móvil */
           "flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]",
           "text-[13px] font-medium transition-all duration-150",
           isActive
@@ -176,22 +175,10 @@ function NavItem({ item, isActive, onClick }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   AppShell — layout principal con sidebar responsivo y topbar
-   ─────────────────────────────────────────────────────────────────────────
-   Breakpoints:
-     < lg (1024px) : sidebar oculto por defecto, botón hamburguesa en topbar
-     ≥ lg (1024px) : sidebar fijo a la izquierda, siempre visible
-   ═══════════════════════════════════════════════════════════════════════════ */
-export default function AppShell({ children }) {
-  const router       = useRouter();
+/* ── NavContent — usa useSearchParams, debe ir dentro de Suspense ─────── */
+function NavContent({ closeSidebar, userRole }) {
   const pathname     = usePathname();
   const searchParams = useSearchParams();
-  const token        = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
-  const userEmail    = useSyncExternalStore(subscribeStorage, getEmail, serverEmail);
-  const userRole     = useSyncExternalStore(subscribeStorage, getRole, serverSnap);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const avatarLetter = getAvatarLetter(userEmail);
 
   const isItemActive = (href) => {
     const [hrefPath, hrefQuery] = href.split("?");
@@ -203,6 +190,84 @@ export default function AppShell({ children }) {
     }
     return true;
   };
+
+  return (
+    <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5" aria-label="Navegación principal">
+      {navSections.map((section, si) => (
+        <div key={si}>
+          {section.title && (
+            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">
+              {section.title}
+            </p>
+          )}
+          <div className="flex flex-col gap-0.5">
+            {section.items.map((item) => (
+              <NavItem
+                key={item.href}
+                item={item}
+                isActive={isItemActive(item.href)}
+                onClick={closeSidebar}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {userRole === "admin" && (
+        <div>
+          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">Admin</p>
+          <div className="flex flex-col gap-0.5">
+            {[{ href: "/dashboard/admin", label: "Panel Admin", icon: "admin" }].map((item) => {
+              const isActive = isItemActive(item.href);
+              return (
+                <div key={item.href} className="relative">
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-[var(--color-accent)]"
+                      style={{ height: "56%", animation: "slide-in-left 0.22s cubic-bezier(0.34,1.56,0.64,1) both" }}
+                    />
+                  )}
+                  <Link
+                    href={item.href}
+                    onClick={closeSidebar}
+                    className={[
+                      "flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]",
+                      "text-[13px] font-medium transition-all duration-150",
+                      isActive
+                        ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-text-active)]"
+                        : "text-[var(--color-sidebar-text)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-text-active)]",
+                    ].join(" ")}
+                  >
+                    <span className={isActive ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"}>{
+                      icons[item.icon]
+                    }</span>
+                    {item.label}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AppShell — layout principal con sidebar responsivo y topbar
+   ─────────────────────────────────────────────────────────────────────────
+   Breakpoints:
+     < lg (1024px) : sidebar oculto por defecto, botón hamburguesa en topbar
+     ≥ lg (1024px) : sidebar fijo a la izquierda, siempre visible
+   ═══════════════════════════════════════════════════════════════════════════ */
+export default function AppShell({ children }) {
+  const router       = useRouter();
+  const token        = useSyncExternalStore(subscribeStorage, getToken, serverSnap);
+  const userEmail    = useSyncExternalStore(subscribeStorage, getEmail, serverEmail);
+  const userRole     = useSyncExternalStore(subscribeStorage, getRole, serverSnap);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const avatarLetter = getAvatarLetter(userEmail);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -219,10 +284,7 @@ export default function AppShell({ children }) {
   return (
     <div className="flex min-h-screen">
 
-      {/* ══════════ OVERLAY (móvil/tablet) ══════════
-          Capa semitransparente que aparece debajo del sidebar cuando está abierto.
-          Clic en el overlay → cierra el sidebar.
-          Solo visible en < lg (clase lg:hidden). */}
+      {/* ══════════ OVERLAY (móvil/tablet) ══════════ */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
@@ -238,9 +300,7 @@ export default function AppShell({ children }) {
           "fixed top-0 left-0 z-50 flex h-screen w-[var(--sidebar-width)] flex-col",
           "bg-[var(--color-sidebar)] border-r border-[var(--color-sidebar-border)]",
           "shadow-[var(--shadow-sidebar)]",
-          /* Transición de deslizamiento: transform en vez de display para que sea fluida */
           "transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          /* En desktop (≥ lg) siempre visible; en móvil/tablet depende de sidebarOpen */
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
@@ -268,71 +328,13 @@ export default function AppShell({ children }) {
         </Link>
 
         {/* ── Navegación ─────────────────────────────────────────────── */}
-        <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5" aria-label="Navegación principal">
-          {navSections.map((section, si) => (
-            <div key={si}>
-              {section.title && (
-                <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">
-                  {section.title}
-                </p>
-              )}
-              <div className="flex flex-col gap-0.5">
-                {section.items.map((item) => (
-                  <NavItem
-                    key={item.href}
-                    item={item}
-                    isActive={isItemActive(item.href)}
-                    onClick={closeSidebar}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Sección Admin (solo para usuarios con role='admin') */}
-          {userRole === "admin" && (
-            <div>
-              <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">Admin</p>
-              <div className="flex flex-col gap-0.5">
-                {[{ href: "/dashboard/admin", label: "Panel Admin", icon: "admin" }].map((item) => {
-                  const isActive = isItemActive(item.href);
-                  return (
-                    <div key={item.href} className="relative">
-                      {isActive && (
-                        <span
-                          aria-hidden="true"
-                          className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-[var(--color-accent)]"
-                          style={{ height: "56%", animation: "slide-in-left 0.22s cubic-bezier(0.34,1.56,0.64,1) both" }}
-                        />
-                      )}
-                      <Link
-                        href={item.href}
-                        onClick={closeSidebar}
-                        className={[
-                          "flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]",
-                          "text-[13px] font-medium transition-all duration-150",
-                          isActive
-                            ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-text-active)]"
-                            : "text-[var(--color-sidebar-text)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-text-active)]",
-                        ].join(" ")}
-                      >
-                        <span className={isActive ? "text-[var(--color-accent)]" : "text-[var(--color-warning)]"}>
-                          {icons[item.icon]}
-                        </span>
-                        {item.label}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </nav>
+        <Suspense fallback={<div className="flex-1" />}>
+          <NavContent closeSidebar={closeSidebar} userRole={userRole} />
+        </Suspense>
 
         {/* ── Perfil de usuario + Cerrar sesión ──────────────────────── */}
         {token && (
           <div className="border-t border-[var(--color-sidebar-border)] p-3 space-y-0.5">
-            {/* Info del usuario */}
             <div className="flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5">
               <span className={[
                 "grid h-8 w-8 shrink-0 place-items-center rounded-full",
@@ -347,7 +349,6 @@ export default function AppShell({ children }) {
               </div>
             </div>
 
-            {/* Botón cerrar sesión — área mínima 44px para móvil */}
             <button
               onClick={handleLogout}
               className={[
@@ -364,11 +365,6 @@ export default function AppShell({ children }) {
       </aside>
 
       {/* ══════════ CONTENIDO PRINCIPAL ══════════ */}
-      {/*
-        lg:pl-[var(--sidebar-width)]:
-          En desktop desplazamos el contenido a la derecha del sidebar fijo.
-          En móvil/tablet no hay desplazamiento (el sidebar se superpone).
-      */}
       <div className="flex flex-1 flex-col lg:pl-[var(--sidebar-width)]">
 
         {/* ── Topbar ─────────────────────────────────────────────────── */}
@@ -377,16 +373,7 @@ export default function AppShell({ children }) {
           "border-b border-[var(--color-border)] bg-[var(--color-topbar)] px-4 backdrop-blur-xl sm:px-5",
         ].join(" ")}>
 
-          {/* Lado izquierdo: hamburguesa + barra de búsqueda */}
           <div className="flex items-center gap-2 sm:gap-3">
-
-            {/*
-              BOTÓN HAMBURGUESA
-              Visible solo en < lg (lg:hidden).
-              Área mínima 44×44px para cumplir las guías de accesibilidad táctil.
-              aria-expanded refleja el estado actual del sidebar para lectores de pantalla.
-              aria-controls apunta al aside para que los lectores sepan qué controla.
-            */}
             <button
               type="button"
               onClick={() => setSidebarOpen((v) => !v)}
@@ -398,10 +385,9 @@ export default function AppShell({ children }) {
                 "text-[var(--color-muted)] transition-all duration-150",
                 "hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-text)]",
                 "active:scale-95",
-                "lg:hidden", /* Solo visible en móvil/tablet */
+                "lg:hidden",
               ].join(" ")}
             >
-              {/* Animación suave entre las dos formas del icono */}
               <span
                 className="transition-transform duration-200"
                 style={{ transform: sidebarOpen ? "rotate(90deg)" : "rotate(0deg)" }}
@@ -410,12 +396,11 @@ export default function AppShell({ children }) {
               </span>
             </button>
 
-            {/* Barra de búsqueda decorativa — oculta en móvil (< sm) */}
             <div className={[
               "hidden items-center gap-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)]",
               "bg-[var(--color-surface-strong)] px-4 py-2.5 text-[13px] text-[var(--color-muted)]",
               "cursor-pointer transition-all duration-150 hover:border-[var(--color-accent)] hover:text-[var(--color-text)]",
-              "sm:flex",   /* Visible desde sm (640px) en adelante */
+              "sm:flex",
             ].join(" ")}>
               {icons.search}
               <span className="hidden md:inline">Buscar perfiles o plataformas…</span>
@@ -423,7 +408,6 @@ export default function AppShell({ children }) {
             </div>
           </div>
 
-          {/* Lado derecho: toggle de tema + botones de auth si no hay sesión */}
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             {!token && (
@@ -450,14 +434,6 @@ export default function AppShell({ children }) {
           </div>
         </header>
 
-        {/* ── Área de contenido ───────────────────────────────────────── */}
-        {/*
-          Padding responsivo progresivo:
-            móvil  (< 640px)  : 1rem    (16px)
-            sm     (640px+)   : 1.5rem  (24px)
-            lg     (1024px+)  : 2.25rem (36px)
-          safe-bottom: padding extra en iOS para no solapar la barra de gestos
-        */}
         <main className="flex-1 p-4 sm:p-6 lg:p-9 safe-bottom">
           {children}
         </main>
