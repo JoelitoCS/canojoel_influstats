@@ -218,12 +218,11 @@ export default function AppShell({ children }) {
         {/* Logo */}
         <Link href="/" onClick={closeSidebar}
           className="flex h-[60px] items-center gap-3 border-b border-[var(--color-sidebar-border)] px-4 transition-colors hover:bg-[var(--color-sidebar-accent)] sm:px-5">
-          <img
-            src="/logoInfluStats.png"
-            alt="InfluStats"
-            style={{ width: 44, height: 44, borderRadius: 10, objectFit: "contain", flexShrink: 0,
-              filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))" }}
-          />
+          <span className={["grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-sm)]",
+            "bg-[var(--color-accent)] text-sm font-black text-white shadow-[0_2px_12px_var(--color-accent-glow)]",
+            "transition-transform duration-[var(--transition-spring)] hover:scale-110 hover:rotate-[-3deg]"].join(" ")}>
+            IS
+          </span>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-bold text-[var(--color-sidebar-text-active)]">InfluStats</p>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">Command Center</p>
