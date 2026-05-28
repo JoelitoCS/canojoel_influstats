@@ -149,13 +149,33 @@
   padding: 1rem;
 }
 
+@keyframes barRise {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
 .previewChart span {
   flex: 1;
   min-width: 18px;
   border-radius: 999px 999px 4px 4px;
   background: linear-gradient(180deg, var(--color-accent), var(--color-secondary));
   box-shadow: 0 8px 18px var(--color-accent-glow);
+  transform-origin: bottom center;
+  animation: barRise 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
+.previewChart span:nth-child(1) { animation-delay: 0.10s; }
+.previewChart span:nth-child(2) { animation-delay: 0.20s; }
+.previewChart span:nth-child(3) { animation-delay: 0.30s; }
+.previewChart span:nth-child(4) { animation-delay: 0.40s; }
+.previewChart span:nth-child(5) { animation-delay: 0.50s; }
+.previewChart span:nth-child(6) { animation-delay: 0.60s; }
 
 .previewRows {
   display: grid;
