@@ -44,6 +44,10 @@ const inter = Inter({
 export const metadata = {
   title:       "InfluStats — Command Center",
   description: "Plataforma para registrar y analizar métricas sociales.",
+  icons: {
+    icon: "/logoInfluStats.png",
+    apple: "/logoInfluStats.png",
+  },
 };
 
 // ── Script de tema (beforeInteractive) ───────────────────────────────────────
