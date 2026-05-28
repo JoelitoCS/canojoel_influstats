@@ -414,22 +414,63 @@ export default function ProfilePage() {
   );
 
   // ── Error ──────────────────────────────────────────────────────────────────
-  if (error) return (
-    <AppShell>
-      <div style={{ textAlign: "center", padding: "80px 0" }}>
-        <p style={{ fontSize: 56, marginBottom: 12 }}>🔒</p>
-        <h2 style={{ color: "var(--color-text)", margin: "0 0 8px" }}>{error}</h2>
-        <p style={{ color: "var(--color-muted)", marginBottom: 24, fontSize: 14 }}>
-          Este perfil puede ser privado o no existir.
-        </p>
-        <button onClick={() => router.back()}
-          style={{ padding: "10px 24px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)",
-            background: "var(--color-surface)", color: "var(--color-text)", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>
-          ← Volver
-        </button>
-      </div>
-    </AppShell>
-  );
+  if (error) {
+    const isNoProfile = error.toLowerCase().includes("no encontrado") ||
+                        error.toLowerCase().includes("créalo") ||
+                        error.toLowerCase().includes("not found");
+    const isOwnProfile = username === "me";
+
+    return (
+      <AppShell>
+        <div style={{ textAlign: "center", padding: "80px 24px", maxWidth: 460, margin: "0 auto" }}>
+
+          <div style={{
+            width: 80, height: 80, borderRadius: "50%", margin: "0 auto 20px",
+            background: "var(--color-accent-soft)", border: "2px solid var(--color-accent)44",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36,
+          }}>
+            {isNoProfile && isOwnProfile ? "✨" : "🔒"}
+          </div>
+
+          <h2 style={{ color: "var(--color-text)", margin: "0 0 10px", fontSize: 22, fontWeight: 800 }}>
+            {isNoProfile && isOwnProfile ? "Aún no tienes perfil" : error}
+          </h2>
+
+          <p style={{ color: "var(--color-muted)", marginBottom: 28, fontSize: 14, lineHeight: 1.6 }}>
+            {isNoProfile && isOwnProfile
+              ? "Crea tu perfil público para aparecer en búsquedas, explorar y rankings. Solo tarda un minuto."
+              : "Este perfil puede ser privado o no existir."}
+          </p>
+
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            {isNoProfile && isOwnProfile ? (
+              <Link href="/dashboard/profile/edit"
+                style={{
+                  padding: "12px 28px", borderRadius: "var(--radius-md)", border: "none",
+                  background: "var(--color-accent)", color: "white",
+                  fontSize: 14, fontWeight: 700, textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 14px var(--color-accent-glow)",
+                }}
+              >
+                ✏️ Crear mi perfil
+              </Link>
+            ) : (
+              <button onClick={() => router.back()}
+                style={{
+                  padding: "12px 28px", borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)", color: "var(--color-text)",
+                  cursor: "pointer", fontSize: 14, fontWeight: 500,
+                }}>
+                ← Volver
+              </button>
+            )}
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!profile) return null;
 
