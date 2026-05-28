@@ -221,7 +221,8 @@ export default function AppShell({ children }) {
           <img
             src="/logoInfluStats.png"
             alt="InfluStats"
-            style={{ width: 36, height: 36, borderRadius: 8, objectFit: "contain", flexShrink: 0 }}
+            style={{ width: 44, height: 44, borderRadius: 10, objectFit: "contain", flexShrink: 0,
+              filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))" }}
           />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-bold text-[var(--color-sidebar-text-active)]">InfluStats</p>
