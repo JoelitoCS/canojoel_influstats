@@ -72,19 +72,39 @@ const SOCIAL_ICONS = {
 };
 
 const SOCIAL_COLORS = {
-  instagram: "#e1306c", tiktok: "#010101", twitter: "#1da1f2",
+  instagram: "#e1306c", twitter: "#1da1f2",
   youtube:   "#ff2222", twitch:  "#7c3aed", discord:  "#5865f2",
   github:    "#333",    linkedin: "#0077b5", website:  "#635bff",
 };
 
-// Colores para los gráficos por plataforma
+// TikTok no está en SOCIAL_COLORS porque su color depende del tema (ver useTikTokColor)
+
+// Colores para los gráficos por plataforma (TikTok se inyecta dinámicamente)
 const PLATFORM_CHART_COLORS = {
   instagram: { followers: "#e1306c", views: "#f06292", engagement: "#ad1457", growth: "#ec407a" },
-  tiktok:    { followers: "#010101", views: "#424242", engagement: "#616161", growth: "#757575" },
   youtube:   { followers: "#ff2222", views: "#ff7043", engagement: "#e53935", growth: "#ef5350" },
   twitch:    { followers: "#7c3aed", views: "#9c27b0", engagement: "#6a1b9a", growth: "#8e24aa" },
   default:   { followers: "#635bff", views: "#06b6d4", engagement: "#10b981", growth: "#f59e0b" },
 };
+
+/** Hook que devuelve el color de TikTok reactivo al tema claro/oscuro.
+ *  Oscuro → blanco (#ffffff)   Claro → negro (#010101) */
+function useTikTokColor() {
+  const [color, setColor] = useState(() => {
+    if (typeof document === "undefined") return "#ffffff";
+    return document.documentElement.dataset.theme === "light" ? "#010101" : "#ffffff";
+  });
+  useEffect(() => {
+    const update = () => {
+      const theme = document.documentElement.dataset.theme || "dark";
+      setColor(theme === "light" ? "#010101" : "#ffffff");
+    };
+    update();
+    window.addEventListener("themechange", update);
+    return () => window.removeEventListener("themechange", update);
+  }, []);
+  return color;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n) {
@@ -176,7 +196,9 @@ function CustomTooltip({ active, payload, label, platform }) {
 // ── Gráfico por plataforma ────────────────────────────────────────────────────
 function PlatformChart({ stat, historyData }) {
   const [chartType, setChartType] = useState("followers"); // followers | engagement | views | growth
-  const colors = PLATFORM_CHART_COLORS[stat.platform] || PLATFORM_CHART_COLORS.default;
+  const tikTokColor = useTikTokColor();
+  const tikTokColors = { followers: tikTokColor, views: tikTokColor, engagement: tikTokColor, growth: tikTokColor };
+  const colors = stat.platform === "tiktok" ? tikTokColors : (PLATFORM_CHART_COLORS[stat.platform] || PLATFORM_CHART_COLORS.default);
 
   // Preparar datos del gráfico desde historyData o generar datos de demo si no hay
   const chartData = historyData && historyData.length > 0
@@ -372,6 +394,8 @@ export default function ProfilePage() {
   const params   = useParams();
   const router   = useRouter();
   const username = params.username;
+
+  const tikTokColor = useTikTokColor();
 
   const [profile,      setProfile]      = useState(null);
   const [rankPosition, setRankPosition] = useState(null);
@@ -598,7 +622,7 @@ export default function ProfilePage() {
                     e.currentTarget.style.background  = "var(--color-surface-strong)";
                   }}
                 >
-                  <span style={{ color: SOCIAL_COLORS[link.platform] || "var(--color-accent)" }}>
+                  <span style={{ color: link.platform === "tiktok" ? tikTokColor : (SOCIAL_COLORS[link.platform] || "var(--color-accent)") }}>
                     {SOCIAL_ICONS[link.platform] || SOCIAL_ICONS.website}
                   </span>
                   {link.label || link.platform}
@@ -616,7 +640,8 @@ export default function ProfilePage() {
 
             {/* Detalle por plataforma */}
             {stats.map((s) => {
-              const colors = PLATFORM_CHART_COLORS[s.platform] || PLATFORM_CHART_COLORS.default;
+              const tikTokColors = { followers: tikTokColor, views: tikTokColor, engagement: tikTokColor, growth: tikTokColor };
+              const colors = s.platform === "tiktok" ? tikTokColors : (PLATFORM_CHART_COLORS[s.platform] || PLATFORM_CHART_COLORS.default);
               return (
                 <div key={`${s.platform}-${s.username}`}
                   style={{
