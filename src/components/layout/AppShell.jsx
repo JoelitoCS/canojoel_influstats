@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useSyncExternalStore } from "react";
+import { Suspense, useState, useEffect, useSyncExternalStore } from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import GlobalSearch from "@/components/ui/GlobalSearch";
+import { getMyProfile } from "@/lib/userProfileApi";
 
 const icons = {
   dashboard: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>),
@@ -116,6 +117,68 @@ function NavContent({ closeSidebar, userRole }) {
   );
 }
 
+/* ── UserAvatar — avatar del sidebar con foto real ───────────────────────── */
+function UserAvatar({ email, token }) {
+  const [avatarUrl,    setAvatarUrl]    = useState(null);
+  const [displayName,  setDisplayName]  = useState(null);
+  const [username,     setUsername]     = useState(null);
+
+  useEffect(() => {
+    if (!token) return;
+    getMyProfile()
+      .then((data) => {
+        const p = data?.profile;
+        if (p) {
+          setAvatarUrl(p.avatarUrl   || null);
+          setDisplayName(p.displayName || null);
+          setUsername(p.username     || null);
+        }
+      })
+      .catch(() => {}); // Si no tiene perfil aún, no pasa nada
+  }, [token]);
+
+  const letter = getAvatarLetter(displayName || email);
+  const profileHref = username
+    ? `/dashboard/profile/${username}`
+    : "/dashboard/profile/me";
+
+  return (
+    <Link href={profileHref}
+      className="flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 hover:bg-[var(--color-sidebar-accent)] transition-colors">
+
+      {/* Avatar: foto real o letra inicial */}
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={displayName || email}
+          style={{
+            width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+            border: "2px solid var(--color-accent)",
+            boxShadow: "0 2px 8px var(--color-accent-glow)",
+          }}
+        />
+      ) : (
+        <span className={[
+          "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+          "bg-[var(--color-accent)] text-xs font-bold text-white",
+          "shadow-[0_2px_8px_var(--color-accent-glow)] ring-2 ring-[var(--color-accent)]/20",
+        ].join(" ")}>
+          {letter}
+        </span>
+      )}
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold text-[var(--color-sidebar-text-active)]">
+          {displayName || email}
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-accent)]">
+          Ver perfil
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    AppShell — layout principal
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -125,10 +188,11 @@ export default function AppShell({ children }) {
   const userEmail    = useSyncExternalStore(subscribeStorage, getEmail, serverEmail);
   const userRole     = useSyncExternalStore(subscribeStorage, getRole, serverSnap);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const avatarLetter = getAvatarLetter(userEmail);
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); localStorage.removeItem("userEmail"); localStorage.removeItem("userRole");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
     window.dispatchEvent(new StorageEvent("storage", { key: "token",     newValue: null }));
     window.dispatchEvent(new StorageEvent("storage", { key: "userEmail", newValue: null }));
     window.dispatchEvent(new StorageEvent("storage", { key: "userRole",  newValue: null }));
@@ -151,6 +215,7 @@ export default function AppShell({ children }) {
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       ].join(" ")} aria-label="Barra de navegación lateral">
 
+        {/* Logo */}
         <Link href="/" onClick={closeSidebar}
           className="flex h-[60px] items-center gap-3 border-b border-[var(--color-sidebar-border)] px-4 transition-colors hover:bg-[var(--color-sidebar-accent)] sm:px-5">
           <span className={["grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-sm)]",
@@ -164,24 +229,15 @@ export default function AppShell({ children }) {
           </div>
         </Link>
 
+        {/* Nav */}
         <Suspense fallback={<div className="flex-1" />}>
           <NavContent closeSidebar={closeSidebar} userRole={userRole} />
         </Suspense>
 
+        {/* Footer del sidebar — avatar + logout */}
         {token && (
           <div className="border-t border-[var(--color-sidebar-border)] p-3 space-y-0.5">
-            <Link href="/dashboard/profile/me" onClick={closeSidebar}
-              className="flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 hover:bg-[var(--color-sidebar-accent)] transition-colors">
-              <span className={["grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                "bg-[var(--color-accent)] text-xs font-bold text-white",
-                "shadow-[0_2px_8px_var(--color-accent-glow)] ring-2 ring-[var(--color-accent)]/20"].join(" ")}>
-                {avatarLetter}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-semibold text-[var(--color-sidebar-text-active)]">{userEmail}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-accent)]">Ver perfil</p>
-              </div>
-            </Link>
+            <UserAvatar email={userEmail} token={token} />
             <button onClick={handleLogout}
               className={["flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]",
                 "text-[13px] font-medium text-[var(--color-sidebar-text)]",
@@ -195,7 +251,7 @@ export default function AppShell({ children }) {
       {/* ══════ CONTENIDO PRINCIPAL ══════ */}
       <div className="flex flex-1 flex-col lg:pl-[var(--sidebar-width)]">
 
-        {/* ── Topbar ─────────────────────────────────────────────────── */}
+        {/* Topbar */}
         <header className={["sticky top-0 z-30 flex h-[60px] items-center justify-between gap-3",
           "border-b border-[var(--color-border)] bg-[var(--color-topbar)] px-4 backdrop-blur-xl sm:px-5"].join(" ")}>
 
@@ -210,7 +266,6 @@ export default function AppShell({ children }) {
               </span>
             </button>
 
-            {/* ── GlobalSearch (buscador real con autocomplete) ── */}
             <div className="hidden sm:block flex-1 max-w-[340px]">
               <GlobalSearch />
             </div>
