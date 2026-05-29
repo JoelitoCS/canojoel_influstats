@@ -42,7 +42,7 @@ const inter = Inter({
 // Next.js usa este objeto para generar las etiquetas <title> y <meta> del HTML.
 // Aparecen en la pestaña del navegador y en los resultados de búsqueda (SEO).
 export const metadata = {
-  title:       "InfluStats — Command Center",
+  title:       "InfluStats — Compara, analiza, y mejora tus métricas sociales",
   description: "Plataforma para registrar y analizar métricas sociales.",
   icons: {
     icon: "/favicon.ico",
