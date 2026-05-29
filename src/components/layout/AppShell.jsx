@@ -67,7 +67,7 @@ function NavItem({ item, isActive, onClick }) {
           style={{ height: "56%", animation: "slide-in-left 0.22s cubic-bezier(0.34,1.56,0.64,1) both" }} />
       )}
       <Link href={item.href} onClick={onClick}
-        className={["flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]", "text-[13px] font-medium transition-all duration-150",
+        className={["flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 min-h-[34px]", "text-[12px] font-medium transition-all duration-150",
           isActive ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-text-active)]"
                    : "text-[var(--color-sidebar-text)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-text-active)]",
         ].join(" ")}
@@ -92,11 +92,11 @@ function NavContent({ closeSidebar, userRole }) {
     return true;
   };
   return (
-    <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-4 space-y-5" aria-label="Navegación principal">
+    <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-2 space-y-3" aria-label="Navegación principal">
       {navSections.map((section, si) => (
         <div key={si}>
           {section.title && (
-            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">{section.title}</p>
+            <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">{section.title}</p>
           )}
           <div className="flex flex-col gap-0.5">
             {section.items.map((item) => (
@@ -107,7 +107,7 @@ function NavContent({ closeSidebar, userRole }) {
       ))}
       {userRole === "admin" && (
         <div>
-          <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">Admin</p>
+          <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--color-sidebar-text)]/40">Admin</p>
           <div className="flex flex-col gap-0.5">
             <NavItem item={{ href: "/dashboard/admin", label: "Panel Admin", icon: "admin" }} isActive={isItemActive("/dashboard/admin")} onClick={closeSidebar} />
           </div>
@@ -144,7 +144,7 @@ function UserAvatar({ email, token }) {
 
   return (
     <Link href={profileHref}
-      className="flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 hover:bg-[var(--color-sidebar-accent)] transition-colors">
+      className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 hover:bg-[var(--color-sidebar-accent)] transition-colors">
 
       {/* Avatar: foto real o letra inicial */}
       {avatarUrl ? (
@@ -168,7 +168,7 @@ function UserAvatar({ email, token }) {
       )}
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-semibold text-[var(--color-sidebar-text-active)]">
+        <p className="truncate text-[12px] font-semibold text-[var(--color-sidebar-text-active)]">
           {displayName || email}
         </p>
         <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--color-accent)]">
@@ -243,8 +243,8 @@ export default function AppShell({ children }) {
           <div className="border-t border-[var(--color-sidebar-border)] p-3 space-y-0.5">
             <UserAvatar email={userEmail} token={token} />
             <button onClick={handleLogout}
-              className={["flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 min-h-[44px]",
-                "text-[13px] font-medium text-[var(--color-sidebar-text)]",
+              className={["flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 min-h-[34px]",
+                "text-[12px] font-medium text-[var(--color-sidebar-text)]",
                 "transition-all duration-150 hover:bg-[var(--color-error-soft)] hover:text-[var(--color-error)] active:scale-[0.98]"].join(" ")}>
               {icons.logout} Cerrar sesión
             </button>
