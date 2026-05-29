@@ -223,9 +223,13 @@ export default function AppShell({ children }) {
             "transition-transform duration-[var(--transition-spring)] hover:scale-110 hover:rotate-[-3deg]"].join(" ")}>
             IS
           </span>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-bold text-[var(--color-sidebar-text-active)]">InfluStats</p>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">Compara, analiza, y mejora</p>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-[14px] font-extrabold tracking-tight">
+              <span style={{ color: "#7c3aed" }}>Influ</span><span style={{ color: "#06b6d4" }}>Stats</span>
+            </p>
+            <p className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--color-sidebar-text)]/55">
+              Compara · Analiza · Mejora
+            </p>
           </div>
         </Link>
 
