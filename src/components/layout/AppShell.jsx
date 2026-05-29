@@ -67,7 +67,7 @@ function NavItem({ item, isActive, onClick }) {
           style={{ height: "56%", animation: "slide-in-left 0.22s cubic-bezier(0.34,1.56,0.64,1) both" }} />
       )}
       <Link href={item.href} onClick={onClick}
-        className={["flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 min-h-[34px]", "text-[12px] font-medium transition-all duration-150",
+        className={["flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 min-h-[38px]", "text-[12px] font-medium transition-all duration-150",
           isActive ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-text-active)]"
                    : "text-[var(--color-sidebar-text)] hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-text-active)]",
         ].join(" ")}
@@ -144,7 +144,7 @@ function UserAvatar({ email, token }) {
 
   return (
     <Link href={profileHref}
-      className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 hover:bg-[var(--color-sidebar-accent)] transition-colors">
+      className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 hover:bg-[var(--color-sidebar-accent)] transition-colors">
 
       {/* Avatar: foto real o letra inicial */}
       {avatarUrl ? (
@@ -243,7 +243,7 @@ export default function AppShell({ children }) {
           <div className="border-t border-[var(--color-sidebar-border)] p-3 space-y-0.5">
             <UserAvatar email={userEmail} token={token} />
             <button onClick={handleLogout}
-              className={["flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-1.5 min-h-[34px]",
+              className={["flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 min-h-[38px]",
                 "text-[12px] font-medium text-[var(--color-sidebar-text)]",
                 "transition-all duration-150 hover:bg-[var(--color-error-soft)] hover:text-[var(--color-error)] active:scale-[0.98]"].join(" ")}>
               {icons.logout} Cerrar sesión
