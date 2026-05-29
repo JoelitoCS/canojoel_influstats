@@ -63,11 +63,35 @@ function Medal({ position }) {
   );
 }
 
-function Avatar({ username, color }) {
+function Avatar({ username, avatarUrl, color, onClick }) {
   const letter = (username || "?")[0].toUpperCase();
+  const [imgError, setImgError] = useState(false);
+
+  const content = avatarUrl && !imgError ? (
+    <img
+      src={avatarUrl}
+      alt={`Avatar de @${username}`}
+      onError={() => setImgError(true)}
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <span className="text-sm font-bold text-white" style={{ lineHeight: 1 }}>{letter}</span>
+  );
+
+  const base = "grid h-10 w-10 shrink-0 place-items-center rounded-full overflow-hidden transition-all duration-200";
+  const interactive = onClick ? "cursor-pointer ring-2 ring-transparent hover:ring-[var(--color-accent)] hover:scale-110 hover:shadow-lg" : "";
+
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white" style={{ background: color }}>
-      {letter}
+    <span
+      className={`${base} ${interactive}`}
+      style={{ background: (!avatarUrl || imgError) ? color : undefined }}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
+      title={onClick ? `Ver perfil de @${username}` : undefined}
+    >
+      {content}
     </span>
   );
 }
@@ -106,7 +130,7 @@ function RowSkeleton() {
 }
 
 /* ── Card de entrada para móvil ──────────────────────────────────────────── */
-function RankingCard({ entry, meta, sort }) {
+function RankingCard({ entry, meta, sort, onAvatarClick }) {
   return (
     <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
       {/* Posición */}
@@ -118,7 +142,12 @@ function RankingCard({ entry, meta, sort }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <div className="relative shrink-0">
-            <Avatar username={entry.username} color={meta.color || "#635bff"} />
+            <Avatar
+              username={entry.username}
+              avatarUrl={entry.avatarUrl}
+              color={meta.color || "#635bff"}
+              onClick={onAvatarClick}
+            />
             <span
               className="absolute -bottom-0.5 -right-0.5 grid h-[14px] w-[14px] place-items-center rounded-full"
               style={{ border: "1.5px solid var(--color-surface)", background: "var(--color-surface-strong)" }}
@@ -339,7 +368,17 @@ export default function RankingsPage() {
             )}
 
             {!loading && ranking.map((entry) => (
-              <RankingCard key={entry.profileId} entry={entry} meta={meta} sort={sort} />
+              <RankingCard
+                key={entry.profileId}
+                entry={entry}
+                meta={meta}
+                sort={sort}
+                onAvatarClick={
+                  entry.userProfileUsername
+                    ? () => router.push(`/dashboard/profile/${entry.userProfileUsername}`)
+                    : undefined
+                }
+              />
             ))}
           </div>
 
@@ -390,7 +429,16 @@ export default function RankingsPage() {
                           <td className="py-3.5 pr-3">
                             <div className="flex items-center gap-2 sm:gap-3">
                               <div className="relative shrink-0">
-                                <Avatar username={entry.username} color={meta.color || "#635bff"} />
+                                <Avatar
+                                  username={entry.username}
+                                  avatarUrl={entry.avatarUrl}
+                                  color={meta.color || "#635bff"}
+                                  onClick={
+                                    entry.userProfileUsername
+                                      ? () => router.push(`/dashboard/profile/${entry.userProfileUsername}`)
+                                      : undefined
+                                  }
+                                />
                                 <span
                                   className="absolute -bottom-0.5 -right-0.5 grid h-[14px] w-[14px] place-items-center rounded-full"
                                   style={{ border: "1.5px solid var(--color-surface)", background: "var(--color-surface-strong)" }}
@@ -399,7 +447,13 @@ export default function RankingsPage() {
                                 </span>
                               </div>
                               <div className="min-w-0">
-                                <p className="truncate font-semibold text-[var(--color-text)]">@{entry.username}</p>
+                                <p
+                                  className={["truncate font-semibold text-[var(--color-text)]", entry.userProfileUsername ? "cursor-pointer hover:text-[var(--color-accent)] transition-colors" : ""].join(" ")}
+                                  onClick={entry.userProfileUsername ? () => router.push(`/dashboard/profile/${entry.userProfileUsername}`) : undefined}
+                                  title={entry.userProfileUsername ? `Ver perfil de @${entry.username}` : undefined}
+                                >
+                                  @{entry.username}
+                                </p>
                                 {entry.url && (
                                   <a href={entry.url} target="_blank" rel="noopener noreferrer"
                                     className="hidden truncate text-xs text-[var(--color-muted)] hover:text-[var(--color-accent)] md:block">
