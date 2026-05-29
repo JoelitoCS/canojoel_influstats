@@ -18,6 +18,23 @@ import PlatformIcon from "@/components/ui/PlatformIcon";
 
 const PAGE_SIZE = 8;
 
+// ── Color fijo por métrica — igual en todas las plataformas ────────────────────
+// Permite distinguir cada línea/punto del gráfico sin depender del color de la plataforma.
+export const FIELD_COLORS = {
+  followers:         "#635bff", // violeta — seguidores siempre violeta
+  subscribers:       "#635bff", // alias YouTube
+  views:             "#06b6d4", // cyan
+  likes:             "#f43f5e", // rosa
+  comments:          "#f59e0b", // ámbar
+  favorites:         "#10b981", // esmeralda
+  shares:            "#8b5cf6", // púrpura
+  posts:             "#64748b", // gris-pizarra
+  paidMembers:       "#22c55e", // verde
+  subscribersTwitch: "#9146ff", // twitch
+  bits:              "#f97316", // naranja
+  donations:         "#eab308", // dorado
+};
+
 export const PLATFORM_META = {
   instagram: { label: "Instagram", color: "#e1306c", gradient: "#e1306c,#f77737" },
   youtube:   { label: "YouTube",   color: "#ff0000", gradient: "#ff0000,#ff6b6b" },
@@ -303,28 +320,47 @@ function ChartsSection({ data, chartFields, color, platform, theme }) {
       </div>
 
       {activeTab === "metrics" && (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={320}>
           <AreaChart key={animKey} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              {chartFields.map((f, i) => (
-                <linearGradient key={f.key} id={`${gradId}-${f.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={color} stopOpacity={isTT ? 0.18 : 0.25 - i * 0.04} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              ))}
+              {chartFields.map((f) => {
+                const fc = FIELD_COLORS[f.key] || color;
+                return (
+                  <linearGradient key={f.key} id={`${gradId}-${f.key}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={fc} stopOpacity={0.22} />
+                    <stop offset="95%" stopColor={fc} stopOpacity={0} />
+                  </linearGradient>
+                );
+              })}
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="_date" tickFormatter={fmtXDate} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tickFormatter={fmtShort} tick={{ fill: "var(--color-muted)", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
             <Tooltip content={<CustomTooltip />} />
-            <Legend formatter={(value) => <span style={{ fontSize: 11, color: "var(--color-muted)" }}>{value}</span>} />
-            {chartFields.map((f, i) => (
-              <Area key={f.key} type="monotone" dataKey={f.key} name={f.label} stroke={color}
-                strokeWidth={i === 0 ? 2.5 : 1.5} strokeOpacity={isTT ? 1 : 1 - i * 0.15}
-                fill={`url(#${gradId}-${f.key})`} dot={false}
-                activeDot={{ r: 5, fill: color, stroke: "var(--color-surface)", strokeWidth: 2 }}
-                animationBegin={0} animationDuration={1200} animationEasing="ease-out" />
-            ))}
+            <Legend
+              formatter={(value, entry) => (
+                <span style={{ fontSize: 11, color: entry.color, fontWeight: 600 }}>{value}</span>
+              )}
+            />
+            {chartFields.map((f) => {
+              const fc = FIELD_COLORS[f.key] || color;
+              return (
+                <Area
+                  key={f.key}
+                  type="monotone"
+                  dataKey={f.key}
+                  name={f.label}
+                  stroke={fc}
+                  strokeWidth={2}
+                  fill={`url(#${gradId}-${f.key})`}
+                  dot={{ r: 3.5, fill: fc, stroke: "var(--color-surface)", strokeWidth: 1.5 }}
+                  activeDot={{ r: 6, fill: fc, stroke: "var(--color-surface)", strokeWidth: 2 }}
+                  animationBegin={0}
+                  animationDuration={1200}
+                  animationEasing="ease-out"
+                />
+              );
+            })}
           </AreaChart>
         </ResponsiveContainer>
       )}
@@ -531,15 +567,16 @@ export default function PlatformPage({
             const delta   = curr !== null && prev !== null ? curr - prev : null;
             const pct     = delta !== null && prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
             const positive = delta !== null && delta >= 0;
+            const fieldColor = FIELD_COLORS[key] || chartColor;
             return (
               <div key={key} className="stat-card rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
-                style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${chartColor}` }}>
+                style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px)", transition: `opacity 0.4s ease ${idx*80}ms, transform 0.4s ease ${idx*80}ms`, borderTop: `3px solid ${fieldColor}` }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">{label}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: fieldColor }}>{label}</p>
                     <p className="mt-2 text-2xl font-bold text-[var(--color-text)]"><AnimatedNumber value={curr ?? 0} /></p>
                   </div>
-                  <StatIcon metric={key} color={chartColor} />
+                  <StatIcon metric={key} color={fieldColor} />
                 </div>
                 {delta !== null ? (
                   <div className="mt-2 flex items-center gap-1.5">
