@@ -225,7 +225,7 @@ export default function AppShell({ children }) {
           </span>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-bold text-[var(--color-sidebar-text-active)]">InfluStats</p>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">Compara, analiza, y mejora tus métricas sociales</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-sidebar-text)]/50">Compara, analiza, y mejora</p>
           </div>
         </Link>
 
