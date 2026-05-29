@@ -388,6 +388,50 @@ function MultiPlatformChart({ stats }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+//  Botón para volver a Explorar (chevron animado + acento violeta v3)
+// ═══════════════════════════════════════════════════════════════════════════════
+function BackToExploreButton({ onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      aria-label="Volver a Explorar"
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 10,
+        padding: "8px 16px 8px 10px",
+        marginBottom: 16,
+        background: hover ? "var(--color-accent-soft)" : "var(--color-surface)",
+        border: `1px solid ${hover ? "var(--color-accent)" : "var(--color-border)"}`,
+        borderRadius: "999px",
+        color: hover ? "var(--color-accent)" : "var(--color-text)",
+        fontSize: 14, fontWeight: 600,
+        cursor: "pointer",
+        boxShadow: hover ? "0 6px 18px -6px var(--color-accent)55" : "var(--shadow-card)",
+        transform: hover ? "translateX(-2px)" : "translateX(0)",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
+    >
+      <span style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 26, height: 26, borderRadius: "50%",
+        background: hover ? "var(--color-accent)" : "var(--color-bg)",
+        color: hover ? "#fff" : "var(--color-accent)",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        transform: hover ? "translateX(-3px)" : "translateX(0)",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </span>
+      <span>Volver a Explorar</span>
+    </button>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 //  Página principal
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProfilePage() {
@@ -504,6 +548,17 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
+
+        {/* ── Botón volver a Explorar ──────────────────────────────────── */}
+        <BackToExploreButton
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/dashboard/explore");
+            }
+          }}
+        />
 
         {/* ── Header del perfil ────────────────────────────────────────── */}
         <div style={{
